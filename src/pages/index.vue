@@ -1,0 +1,203 @@
+// Criado (08/10/2026)
+<template>
+  <!-- Barra superior fixa com o logo F1 MANAGER -->
+  <v-app-bar flat color="#15151e" height="48" class="border-b">
+    <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
+      F1 MANAGER
+    </div>
+  </v-app-bar>
+
+  <!-- Container Principal -->
+  <v-container fluid class="f1-bg pa-0 d-flex align-center justify-center">
+    <!-- Camada de sobreposição escurecida para destacar o formulário de login -->
+    <div class="f1-overlay"></div>
+    
+
+    <v-row align="center" justify="center" class="ma-0 w-100 z-index-content">
+      <v-col cols="12" sm="8" md="5" lg="4">
+
+        <!-- Card de Autenticação -->
+        <v-card 
+          class="f1-card pa-6 text-center" 
+          variant="outlined"
+          rounded="xl"
+          elevation="24"
+        >
+          <!-- Título Interno -->
+          <h2 class="text-h5 font-weight-black text-red-accent-4 mb-6 tracking-wider">
+            AUTENTICAÇÃO
+          </h2>
+
+          <v-form @submit.prevent="handleLogin">
+            <!-- Campo EMAIL/LOGIN-->
+            <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
+              EMAIL/LOGIN
+            </div>
+            <v-text-field
+              v-model="login"
+              placeholder="DIGITE SEU E-MAIL/USUÁRIO"
+              variant="solo"
+              flat
+              density="comfortable"
+              class="f1-input mb-4"
+              bg-color="rgba(226, 232, 240, 0.85)"
+              rounded="lg"
+              hide-details="auto"
+              required
+            ></v-text-field>
+
+            <!-- Campo SENHA -->
+            <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
+              SENHA
+            </div>
+            <v-text-field
+              v-model="password"
+              placeholder="..............."
+              type="password"
+              variant="solo"
+              flat
+              density="comfortable"
+              class="f1-input mb-6"
+              bg-color="rgba(226, 232, 240, 0.85)"
+              rounded="lg"
+              hide-details="auto"
+              required
+            ></v-text-field>
+
+            <!-- Alerta de Erro -->
+            <v-alert v-if="error" type="error" variant="flat" density="compact" class="mb-4 text-caption font-weight-bold text-white">
+              {{ error }}
+            </v-alert>
+
+            <!-- Botão ENTRAR -->
+            <v-btn
+              type="submit"
+              color="#e10600"
+              size="large"
+              rounded="pill"
+              class="px-8 font-weight-black text-white text-subtitle-1 mb-6 btn-f1"
+              elevation="2"
+            >
+              ENTRAR
+            </v-btn>
+          </v-form>
+
+          <!-- Links do Rodapé -->
+          <div class="d-flex flex-column gap-2 text-left pt-2">
+            <a href="#" class="f1-link text-caption font-weight-bold text-grey-darken-3">
+              ESQUECEU A SENHA?
+            </a>
+            <router-link to="/registrar" class="f1-link text-caption font-weight-bold text-grey-darken-3">
+              NOVO POR AQUI? CADASTRE-SE
+            </router-link>
+          </div>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
+</template>
+
+<script setup lang="ts">
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import api from '../services/api';
+
+const login = ref('');
+const password = ref('');
+const error = ref('');
+const router = useRouter();
+
+const handleLogin = async () => {
+  error.value = ''; // Limpa erros anteriores ao tentar novamente
+  try {
+    const response = await api.post('/auth/login', {
+      login: login.value,
+      password: password.value
+    });
+
+    // Sucesso: guarda o token JWT e redireciona
+    localStorage.setItem('token', response.data.token);
+    router.push('/escuderias');
+  } catch (err: any) {
+    console.error('Erro na requisição:', err);
+
+    if (!err.response) {
+      // Backend offline ou problema de CORS (Cross-Origin Resource Sharing)
+      error.value = 'Servidor indisponível (CORS ou Spring Boot desligado)!';
+    } else if (err.response.status === 403 || err.response.status === 401) {
+      // Login/Senha incorretos ou não autorizado pelo Spring Security
+      error.value = 'Login ou senha inválidos!';
+    } else {
+      // Outros erros vindos da API
+      error.value = err.response.data?.mensagem || 'Erro ao realizar login!';
+    }
+  }
+};
+</script>
+
+<style scoped>
+/* Fundo que é adaptado a tela */
+.f1-bg {
+  position: relative;
+  min-height: calc(100vh - 48px);
+  height: calc(100vh - 48px);
+  /* Procura carregar o ficheiro exato da imagem */
+  background-image: url('@/assets/f1-manager-logo.jpg');
+  /* Garante que o cenário cobre o ecrã inteiro sem distorcer ou deixar bordas */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  overflow: hidden;
+}
+
+/* Camada escura de sobreposição (Overlay) para aumentar o contraste do Card */
+.f1-overlay {
+  position: absolute;
+  inset: 0;
+  /* Aplica um gradiente para que a pista fique visível mas de forma muito suave e escura */
+  background: linear-gradient(180deg, rgba(21, 21, 30, 0.2) 0%, rgba(21, 21, 30, 0.4) 100%);
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* Mantém o card por cima da marca d'água */
+.z-index-content {
+  position: relative;
+  z-index: 2;
+}
+
+/* Card translúcido (opaco com vidro fosco) permitindo ver o F1 atrás */
+.f1-card {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border: 1.5px solid rgba(225, 6, 0, 0.6) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+}
+
+/* Campos de entrada com leve transparência para harmonizar */
+:deep(.f1-input .v-field) {
+  border: 1px solid #cbd5e1 !important;
+  color: #1e293b !important;
+}
+
+:deep(.f1-input input::placeholder) {
+  color: #64748b !important;
+  font-style: italic;
+  font-size: 0.85rem;
+}
+
+/* Links sem sublinhado por padrão */
+.f1-link {
+  text-decoration: none;
+  transition: color 0.2s;
+}
+
+.f1-link:hover {
+  color: #e10600 !important;
+}
+
+.btn-f1 {
+  letter-spacing: 1px;
+}
+</style>
