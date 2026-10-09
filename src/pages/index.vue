@@ -8,30 +8,30 @@
   </v-app-bar>
 
   <!-- Container Principal -->
-  <v-container fluid class="f1-bg pa-0 d-flex align-center justify-center">
+  <v-container fluid class="f1-bg pa-0 d-flex align-center justify-center" >
     <!-- Camada de sobreposição escurecida para destacar o formulário de login -->
     <div class="f1-overlay"></div>
     
 
-    <v-row align="center" justify="center" class="ma-0 w-100 z-index-content">
+    <v-row align="center" justify="center" class="ma-0 w-100 z-index-content" >
       <v-col cols="12" sm="8" md="5" lg="4">
 
         <!-- Card de Autenticação -->
         <v-card 
-          class="f1-card pa-6 text-center" 
+          class="f1-card pa-6 text-center"
           variant="outlined"
           rounded="xl"
           elevation="24"
         >
           <!-- Título Interno -->
           <h2 class="text-h5 font-weight-black text-red-accent-4 mb-6 tracking-wider">
-            AUTENTICAÇÃO
+            LOGIN
           </h2>
 
           <v-form @submit.prevent="handleLogin">
             <!-- Campo EMAIL/LOGIN-->
             <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-              EMAIL/LOGIN
+              USUÁRIO
             </div>
             <v-text-field
               v-model="login"
@@ -72,6 +72,7 @@
             <!-- Botão ENTRAR -->
             <v-btn
               type="submit"
+              @click="handleLogin"
               color="#e10600"
               size="large"
               rounded="pill"
@@ -83,11 +84,13 @@
           </v-form>
 
           <!-- Links do Rodapé -->
-          <div class="d-flex flex-column gap-2 text-left pt-2">
-            <a href="#" class="f1-link text-caption font-weight-bold text-grey-darken-3">
+          <div class="d-flex flex-column gap-2 text-center pt-2">
+            <a href="#" class="f1-link text-caption font-weight-bold text-grey-darken-3 text-decoration-none hover-red">
               ESQUECEU A SENHA?
             </a>
-            <router-link to="/registrar" class="f1-link text-caption font-weight-bold text-grey-darken-3">
+            <router-link
+              to="/registrar"
+              class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1">
               NOVO POR AQUI? CADASTRE-SE
             </router-link>
           </div>
@@ -117,7 +120,7 @@ const handleLogin = async () => {
 
     // Sucesso: guarda o token JWT e redireciona
     localStorage.setItem('token', response.data.token);
-    router.push('/escuderias');
+    router.push('/dashboard');
   } catch (err: any) {
     console.error('Erro na requisição:', err);
 
@@ -153,11 +156,12 @@ const handleLogin = async () => {
 /* Camada escura de sobreposição (Overlay) para aumentar o contraste do Card */
 .f1-overlay {
   position: absolute;
-  inset: 0;
-  /* Aplica um gradiente para que a pista fique visível mas de forma muito suave e escura */
-  background: linear-gradient(180deg, rgba(21, 21, 30, 0.2) 0%, rgba(21, 21, 30, 0.4) 100%);
-  pointer-events: none;
-  z-index: 1;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(15, 15, 20, 0.20) !important; 
+  backdrop-filter: blur(2px) !important; /* Desfoque suave no fundo */
 }
 
 /* Mantém o card por cima da marca d'água */
@@ -166,13 +170,13 @@ const handleLogin = async () => {
   z-index: 2;
 }
 
-/* Card translúcido (opaco com vidro fosco) permitindo ver o F1 atrás */
+/* Card translúcido */
 .f1-card {
-  background: rgba(255, 255, 255, 0.72) !important;
+  background: rgba(255, 255, 255, 0.30) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.6) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3) !important;
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.1) !important;
 }
 
 /* Campos de entrada com leve transparência para harmonizar */
@@ -193,8 +197,9 @@ const handleLogin = async () => {
   transition: color 0.2s;
 }
 
-.f1-link:hover {
-  color: #e10600 !important;
+.hover-red:hover {
+  color: #d50000 !important;
+  text-decoration: underline !important;
 }
 
 .btn-f1 {
