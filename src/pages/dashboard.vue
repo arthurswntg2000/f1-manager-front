@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) -->
+<!--Criado (09/10/2026); Atualizado (13/10/2026)--> 
 <template>
   <v-app>
     <!-- Componente da Barra Lateral Reutilizável -->
@@ -11,11 +11,12 @@
       </div>
     </v-app-bar>
 
-    <!-- Área de Conteúdo Principal do Dashboard com Fundo de F1 -->
+    <!-- Área de Conteúdo Principal -->
     <v-main class="f1-bg">
       <!-- Camada escura de sobreposição (Overlay) para destacar os cards -->
       <div class="f1-overlay"></div>
 
+      <!-- Container do Grid Principal -->
       <v-container fluid class="pa-6 z-index-content">
         <!-- Linha de Cards de Totais -->
         <v-row>
@@ -74,16 +75,30 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import api from '@/services/api'
 
-const totalPilotos = ref(22)
-const totalEscuderias = ref(11)
-const totalCarros = ref(22)
+const totalPilotos = ref(0)
+const totalEscuderias = ref(0)
+const totalCarros = ref(0)
 
-// Carregar os totais reais do backend via API futuramente:
-onMounted(async () => {
-  // Exemplo:
-  // const Pilotos = await fetch('http://localhost:8080/api/pilotos')
-  // ...
+const carregarTotaisReais = async () => {
+  try {
+    const [resPilotos, resEscuderias, resCarros] = await Promise.all([
+      api.get('/pilotos'),
+      api.get('/escuderias'),
+      api.get('/carros')
+    ])
+
+    totalPilotos.value = resPilotos.data ? resPilotos.data.length : 0
+    totalEscuderias.value = resEscuderias.data ? resEscuderias.data.length : 0
+    totalCarros.value = resCarros.data ? resCarros.data.length : 0
+  } catch (err) {
+    console.error('Erro ao buscar totais reais da API Spring Boot:', err)
+  }
+}
+
+onMounted(() => {
+  carregarTotaisReais()
 })
 </script>
 
@@ -104,7 +119,7 @@ onMounted(async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(15, 15, 20, 0.10) !important;
+  background: rgba(15, 15, 20, 0.40) !important;
   backdrop-filter: blur(2px) !important;
 }
 /* Garante que o conteúdo fique visível acima da camada overlay */

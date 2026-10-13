@@ -1,30 +1,16 @@
-import { fileURLToPath, URL } from 'node:url'
-import Vue from '@vitejs/plugin-vue'
-import Fonts from 'unplugin-fonts/vite'
 import { defineConfig } from 'vite'
+import vue from '@vitejs/plugin-vue'
+import vuetify from 'vite-plugin-vuetify'
+import path from 'path'
 
 export default defineConfig({
   plugins: [
-    Vue(),
-    Fonts({
-      fontsource: {
-        families: [
-          {
-            name: 'Roboto',
-            weights: [100, 300, 400, 500, 700, 900],
-            styles: ['normal', 'italic'],
-          },
-        ],
-      },
-    }),
+    vue(),
+    vuetify({ autoImport: true }),
   ],
   resolve: {
     alias: {
-      '@': fileURLToPath(new URL('src', import.meta.url)),
+      '@': path.resolve(import.meta.dirname, './src'),
     },
-    extensions: ['.js', '.json', '.jsx', '.mjs', '.ts', '.tsx', '.vue'],
-  },
-  server: {
-    port: 3000,
   },
 })

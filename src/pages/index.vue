@@ -1,4 +1,4 @@
-// Criado (08/10/2026)
+<!--Criado (08/10/2026); Atualizado (13/10/2026)--> 
 <template>
   <!-- Barra superior fixa com o logo F1 MANAGER -->
   <v-app-bar flat color="#15151e" height="48" class="border-b">
