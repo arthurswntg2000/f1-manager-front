@@ -2,7 +2,7 @@
 <template>
   <v-app>
     <!-- Barra superior fixa com o logo F1 MANAGER -->
-    <v-app-bar flat color="#15151e" height="48" class="border-b">
+    <v-app-bar flat color="#15151e" height="65" class="border-b">
       <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
         F1 MANAGER
       </div>

@@ -37,6 +37,18 @@ const router = createRouter({
       path: '/dashboard',
       component: () => import('@/pages/dashboard.vue'),
     },
+    { 
+      path: '/CadastroPiloto', 
+      component: () => import('@/pages/CadastroPiloto.vue') 
+    },
+    { 
+      path: '/CadastroEscuderia', 
+      component: () => import('@/pages/CadastroEscuderia.vue') 
+    },
+    { 
+      path: '/CadastroCarro', 
+      component: () => import('@/pages/CadastroCarro.vue') 
+    },
   ],
 })
 

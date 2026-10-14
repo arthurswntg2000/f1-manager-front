@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizado (14/10/2026) -->
 <template>
   <v-navigation-drawer
     permanent
@@ -14,7 +14,7 @@
     <v-divider class="border-opacity-25 mb-4"></v-divider>
 
     <!-- Lista de Navegação -->
-    <v-list density="compact" nav class="pa-2">
+    <v-list v-if="modo === 'padrao'" density="compact" nav class="pa-2">
       <!-- Item: DASHBOARD -->
       <v-list-item
         to="/dashboard"
@@ -63,8 +63,61 @@
         </v-list-item-title>
       </v-list-item>
     </v-list>
+
+    <!-- Lista de Navegação para Telas de Cadastro -->
+    <v-list v-else-if="modo === 'cadastro'" density="compact" nav class="pa-2">
+      <!-- Item: PILOTOS (Navega de volta para a lista) -->
+      <v-list-item
+        :to="origem"
+        active-class="active-menu-item"
+        rounded="lg"
+        class="mb-2 py-3"
+      >
+        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
+          {{ labelOrigem }}
+        </v-list-item-title>
+      </v-list-item>
+
+      <!-- Item: CADASTRO -->
+      <v-list-item
+        active-class="active-menu-item"
+        rounded="lg"
+        class="mb-2 py-3 active-menu-item"
+      >
+        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
+          CADASTRO
+        </v-list-item-title>
+      </v-list-item>
+    </v-list>
   </v-navigation-drawer>
 </template>
+
+<script setup>
+import { computed } from 'vue'
+
+const props = defineProps({
+  modo: {
+    type: String,
+    default: 'padrao' 
+  },
+  tipo: {
+    type: String,
+    default: 'piloto' 
+  }
+})
+
+const origem = computed(() => {
+  if (props.tipo === 'escuderia') return '/escuderias'
+  if (props.tipo === 'carro') return '/carros'
+  return '/pilotos'
+})
+
+const labelOrigem = computed(() => {
+  if (props.tipo === 'escuderia') return 'ESCUDERIAS'
+  if (props.tipo === 'carro') return 'CARROS'
+  return 'PILOTOS'
+})
+</script>
 
 <style scoped>
 /* Estilo para itens normais do menu */
@@ -77,7 +130,7 @@
   background-color: rgba(255, 255, 255, 0.05) !important;
 }
 
-/* Item Ativo (Destaque Vermelho do Figma) */
+/* Item Ativo */
 :deep(.active-menu-item) {
   color: #d50000 !important;
   background-color: transparent !important;

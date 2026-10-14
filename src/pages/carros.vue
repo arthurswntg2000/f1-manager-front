@@ -6,7 +6,7 @@
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
 
-      <v-app-bar flat color="#15151e" height="48" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           CARROS
         </div>
@@ -23,7 +23,7 @@
             </v-card>
           </v-col>  
           <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="abrirDialogNovo">
+            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="$router.push('/CadastroCarro')">
               <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
                 + NOVO CARRO
               </span>

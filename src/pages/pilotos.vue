@@ -7,7 +7,7 @@
       <div class="f1-overlay"></div>
 
       <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="48" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           PILOTOS
         </div>
@@ -24,7 +24,7 @@
             </v-card>
           </v-col>
           <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="abrirDialogNovo">
+            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="$router.push('/CadastroPiloto')">
               <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
                 + NOVO PILOTO
               </span>
@@ -53,7 +53,7 @@
                     <td>
                       <div class="d-flex justify-center gap-1">
                         <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="abrirDialogEdicao(piloto)"></v-btn>
-                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(piloto.id)"></v-btn>
+                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(piloto)"></v-btn>
                         <v-btn icon="mdi-eye" size="x-small" variant="text" color="grey-darken-3" @click="visualizarPiloto(piloto)"></v-btn>
                       </div>
                     </td>
@@ -119,6 +119,7 @@
           <v-card-text>
             <v-text-field v-model="formPiloto.nome" label="Nome do Piloto" variant="outlined" density="compact" class="mt-2"></v-text-field>
             <v-text-field v-model="formPiloto.nacionalidade" label="Nacionalidade" variant="outlined" density="compact"></v-text-field>
+            <v-text-field v-model="formPiloto.numeroCarro" label="Número do Carro" type="number" variant="outlined" density="compact"></v-text-field>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -136,6 +137,8 @@
             <p><strong>ID:</strong> {{ pilotoSelecionado.id }}</p>
             <p><strong>NOME:</strong> {{ pilotoSelecionado.nome }}</p>
             <p><strong>NACIONALIDADE:</strong> {{ pilotoSelecionado.nacionalidade }}</p>
+            <p><strong>NÚMERO DO CARRO:</strong> {{ pilotoSelecionado.numeroCarro || 'S/N' }}</p>
+            <p><strong>BIOGRAFIA:</strong> {{ pilotoSelecionado.biografia || 'Não informada' }}</p>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -149,12 +152,12 @@
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">CONFIRMAR EXCLUSÃO</v-card-title>
           <v-card-text class="text-subtitle-1">
-            Tem certeza que deseja excluir este piloto?
+            Tem certeza que deseja excluir o piloto <strong>{{ pilotoSelecionado?.nome }}</strong>?
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="grey" variant="text" @click="dialogDeletar = false">Cancelar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="executarExclusao">Excluir</v-btn>
+            <v-btn color="red-accent-4" variant="flat" :loading="carregandoAcao" @click="executarExclusao">Excluir</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -167,36 +170,28 @@ import { ref, computed, onMounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
-const pilotos = ref([
-  { id: 1, nome: 'Fernando Alonso', nacionalidade: 'Espanha' },
-  { id: 2, nome: 'Felipe Massa', nacionalidade: 'Brasil' },
-  { id: 3, nome: 'Michael Schumacher', nacionalidade: 'Alemanha' },
-  { id: 4, nome: 'Lewis Hamilton', nacionalidade: 'Reino Unido' },
-  { id: 5, nome: 'Sebastian Vettel', nacionalidade: 'Alemanha' },
-  { id: 6, nome: 'Lando Norris', nacionalidade: 'Reino Unido' },
-])
-
+const pilotos = ref([])
 const paginaAtual = ref(1)
 const itensPorPagina = 6
-const totalPilotos = ref(22)
+const totalPilotos = ref(0)
 
 const dialogBusca = ref(false)
 const dialogNovo = ref(false)
 const dialogVisualizar = ref(false)
 const dialogDeletar = ref(false)
 const modoEdicao = ref(false)
+const carregandoAcao = ref(false)
 
 const termoBusca = ref('')
-const idParaDeletar = ref(null)
 const pilotoSelecionado = ref(null)
-const formPiloto = ref({ id: null, nome: '', nacionalidade: '' })
+const formPiloto = ref({ id: null, nome: '', nacionalidade: '', numeroCarro: null })
 
 const pilotosFiltrados = computed(() => {
   if (!termoBusca.value) return pilotos.value
   const termo = termoBusca.value.toLowerCase()
   return pilotos.value.filter(p => 
-    p.nome.toLowerCase().includes(termo) || 
-    p.nacionalidade.toLowerCase().includes(termo)
+    p.nome?.toLowerCase().includes(termo) || 
+    p.nacionalidade?.toLowerCase().includes(termo)
   )
 })
 
@@ -206,12 +201,6 @@ const pilotosPaginados = computed(() => {
   const inicio = (paginaAtual.value - 1) * itensPorPagina
   return pilotosFiltrados.value.slice(inicio, inicio + itensPorPagina)
 })
-
-const abrirDialogNovo = () => {
-  modoEdicao.value = false
-  formPiloto.value = { id: null, nome: '', nacionalidade: '' }
-  dialogNovo.value = true
-}
 
 const abrirDialogEdicao = (piloto) => {
   modoEdicao.value = true
@@ -224,39 +213,56 @@ const visualizarPiloto = (piloto) => {
   dialogVisualizar.value = true
 }
 
+// Atualização de dados
 const salvarPiloto = async () => {
-  if (modoEdicao.value) {
-    const idx = pilotos.value.findIndex(p => p.id === formPiloto.value.id)
-    if (idx !== -1) pilotos.value[idx] = { ...formPiloto.value }
+  carregandoAcao.value = true
+  try {
+    if (modoEdicao.value) {
+    await api.put(`/pilotos/${formPiloto.value.id}`, formPiloto.value)
   } else {
-    const novoId = pilotos.value.length ? Math.max(...pilotos.value.map(p => p.id)) + 1 : 1
-    pilotos.value.push({ ...formPiloto.value, id: novoId })
+    await api.post('/pilotos', formPiloto.value)
   }
   dialogNovo.value = false
+  await carregarPilotos() // Recarrega os dados do banco
+  } catch (err) {
+    console.error('Erro ao salvar/editar piloto no banco:', err)
+  } finally {
+    carregandoAcao.value = false
+  }
 }
 
-const confirmarDeletar = (id) => {
-  idParaDeletar.value = id
+const confirmarDeletar = (piloto) => {
+  pilotoSelecionado.value = piloto
   dialogDeletar.value = true
 }
 
+// Exclusão de dados
 const executarExclusao = async () => {
-  if (idParaDeletar.value !== null) {
-    pilotos.value = pilotos.value.filter(p => p.id !== idParaDeletar.value)
-    idParaDeletar.value = null
+  if (!pilotoSelecionado.value?.id) return
+  carregandoAcao.value = true
+
+  try {
+    await api.delete(`/pilotos/${pilotoSelecionado.value.id}`)
+    dialogDeletar.value = false
+    pilotoSelecionado.value = null
+    await carregarPilotos() // Recarrega os dados atualizados do banco
+  } catch (err) {
+    console.error('Erro ao excluir piloto do banco:', err)
+  } finally {
+    carregandoAcao.value = false
   }
-  dialogDeletar.value = false
 }
 
+// Busca a lista real do banco de dados
 const carregarPilotos = async () => {
   try {
     const response = await api.get('/pilotos')
-    if (response.data && response.data.length > 0) {
+    if (response.data) {
       pilotos.value = response.data
       totalPilotos.value = response.data.length
     }
   } catch (err) {
-    console.error('Carregando dados locais...', err)
+    console.error('Erro ao buscar pilotos na API:', err)
   }
 }
 

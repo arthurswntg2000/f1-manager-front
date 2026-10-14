@@ -5,7 +5,7 @@
     <SidebarLateral />
 
     <!-- Barra Superior Fixa do Dashboard -->
-    <v-app-bar flat color="#15151e" height="48" class="border-b" app>
+    <v-app-bar flat color="#15151e" height="65" class="border-b" app>
       <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
         DASHBOARD
       </div>

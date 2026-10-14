@@ -1,4 +1,4 @@
-<!-- Criado/Atualizado (13/10/2026) -->
+<!-- Criado (13/10/2026) / Atualizado (14/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -6,7 +6,7 @@
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
 
-      <v-app-bar flat color="#15151e" height="48" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           ESCUDERIAS
         </div>
@@ -23,7 +23,7 @@
             </v-card>
           </v-col>
           <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="abrirDialogNovo">
+            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="$router.push('/CadastroEscuderia')">
               <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
                 + NOVA ESCUDERIA
               </span>
@@ -48,13 +48,11 @@
                   <tr v-for="escuderia in escuderiasPaginadas" :key="escuderia.id">
                     <td class="font-weight-bold">{{ escuderia.id }}</td>
                     <td class="font-weight-black text-uppercase">{{ escuderia.nome }}</td>
-                    <td class="font-weight-bold text-uppercase">
-                      {{ escuderia.paisOrigem || escuderia.pais_origem || escuderia.pais || escuderia.nacionalidade || '-' }}
-                    </td>
+                    <td class="font-weight-bold text-uppercase">{{ escuderia.paisOrigem }}</td>
                     <td>
                       <div class="d-flex justify-center gap-1">
                         <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="abrirDialogEdicao(escuderia)"></v-btn>
-                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(escuderia.id)"></v-btn>
+                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(escuderia)"></v-btn>
                         <v-btn icon="mdi-eye" size="x-small" variant="text" color="grey-darken-3" @click="visualizarEscuderia(escuderia)"></v-btn>
                       </div>
                     </td>
@@ -97,12 +95,12 @@
         </v-row>
       </v-container>
 
-      <!-- Modais -->
+      <!-- Modal de Busca -->
       <v-dialog v-model="dialogBusca" max-width="500">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">BUSCAR ESCUDERIA</v-card-title>
           <v-card-text>
-            <v-text-field v-model="termoBusca" label="Nome ou País" variant="outlined" density="compact" class="mt-2" clearable></v-text-field>
+            <v-text-field v-model="termoBusca" label="Nome ou País de Origem" variant="outlined" density="compact" class="mt-2" clearable></v-text-field>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -112,6 +110,7 @@
         </v-card>
       </v-dialog>
 
+      <!-- Modal Edição / Cadastro Rápidos -->
       <v-dialog v-model="dialogNovo" max-width="500">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">
@@ -129,13 +128,17 @@
         </v-card>
       </v-dialog>
 
+      <!-- Modal Visualizar -->
       <v-dialog v-model="dialogVisualizar" max-width="400">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">DETALHES DA ESCUDERIA</v-card-title>
           <v-card-text v-if="escuderiaSelecionada">
             <p><strong>ID:</strong> {{ escuderiaSelecionada.id }}</p>
             <p><strong>NOME:</strong> {{ escuderiaSelecionada.nome }}</p>
-            <p><strong>PAÍS:</strong> {{ escuderiaSelecionada.pais }}</p>
+            <p><strong>PAÍS DE ORIGEM:</strong> {{ escuderiaSelecionada.paisOrigem }}</p>
+            <p><strong>FUNDADOR:</strong> {{ escuderiaSelecionada.fundador || 'Não informado' }}</p>
+            <p><strong>TÍTULOS:</strong> {{ escuderiaSelecionada.titulos ?? 0 }}</p>
+            <p><strong>BIOGRAFIA:</strong> {{ escuderiaSelecionada.biografia || 'Não informada' }}</p>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -149,12 +152,12 @@
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">CONFIRMAR EXCLUSÃO</v-card-title>
           <v-card-text class="text-subtitle-1">
-            Tem certeza que deseja excluir esta escuderia?
+            Tem certeza que deseja excluir a escuderia <strong>{{ escuderiaSelecionada?.nome }}</strong>?
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="grey" variant="text" @click="dialogDeletar = false">Cancelar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="executarExclusao">Excluir</v-btn>
+            <v-btn color="red-accent-4" variant="flat" :loading="carregandoAcao" @click="executarExclusao">Excluir</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -167,38 +170,29 @@ import { ref, computed, onMounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
-const escuderias = ref([
-  { id: 8, nome: 'Ferrari', pais: 'Itália' },
-  { id: 9, nome: 'Red Bull Racing', pais: 'Áustria' },
-  { id: 10, nome: 'Mercedes-AMG Petronas', pais: 'Alemanha' },
-  { id: 11, nome: 'McLaren F1 Team', pais: 'Reino Unido' },
-  { id: 12, nome: 'Aston Martin', pais: 'Reino Unido' },
-  { id: 13, nome: 'Alpine F1 Team', pais: 'França' },
-])
-
+const escuderias = ref([])
 const paginaAtual = ref(1)
 const itensPorPagina = 6
-const totalEscuderias = ref(11)
+const totalEscuderias = ref(0)
 
 const dialogBusca = ref(false)
 const dialogNovo = ref(false)
 const dialogVisualizar = ref(false)
 const dialogDeletar = ref(false)
 const modoEdicao = ref(false)
+const carregandoAcao = ref(false)
 
 const termoBusca = ref('')
-const idParaDeletar = ref(null)
 const escuderiaSelecionada = ref(null)
-const formEscuderia = ref({ id: null, nome: '', pais: '' })
+const formEscuderia = ref({ id: null, nome: '', paisOrigem: '', fundador: '' })
 
 const escuderiasFiltradas = computed(() => {
   if (!termoBusca.value) return escuderias.value
   const termo = termoBusca.value.toLowerCase()
-  return escuderias.value.filter(e => {
-    const nome = e.nome ? e.nome.toLowerCase() : ''
-    const pais = (e.paisOrigem || e.pais_origem || e.pais || e.nacionalidade || '').toLowerCase()
-    return nome.includes(termo) || pais.includes(termo)
-  })
+  return escuderias.value.filter(e => 
+    e.nome?.toLowerCase().includes(termo) || 
+    e.paisOrigem?.toLowerCase().includes(termo)
+  )
 })
 
 const totalPaginas = computed(() => Math.ceil(escuderiasFiltradas.value.length / itensPorPagina) || 1)
@@ -207,12 +201,6 @@ const escuderiasPaginadas = computed(() => {
   const inicio = (paginaAtual.value - 1) * itensPorPagina
   return escuderiasFiltradas.value.slice(inicio, inicio + itensPorPagina)
 })
-
-const abrirDialogNovo = () => {
-  modoEdicao.value = false
-  formEscuderia.value = { id: null, nome: '', pais: '' }
-  dialogNovo.value = true
-}
 
 const abrirDialogEdicao = (escuderia) => {
   modoEdicao.value = true
@@ -225,39 +213,55 @@ const visualizarEscuderia = (escuderia) => {
   dialogVisualizar.value = true
 }
 
+// Salvar / Editar
 const salvarEscuderia = async () => {
-  if (modoEdicao.value) {
-    const idx = escuderias.value.findIndex(e => e.id === formEscuderia.value.id)
-    if (idx !== -1) escuderias.value[idx] = { ...formEscuderia.value }
-  } else {
-    const novoId = escuderias.value.length ? Math.max(...escuderias.value.map(e => e.id)) + 1 : 1
-    escuderias.value.push({ ...formEscuderia.value, id: novoId })
+  carregandoAcao.value = true
+  try {
+    if (modoEdicao.value) {
+      await api.put(`/escuderias/${formEscuderia.value.id}`, formEscuderia.value)
+    } else {
+      await api.post('/escuderias', formEscuderia.value)
+    }
+    dialogNovo.value = false
+    await carregarEscuderias()
+  } catch (err) {
+    console.error('Erro ao salvar/editar escuderia no banco:', err)
+  } finally {
+    carregandoAcao.value = false
   }
-  dialogNovo.value = false
 }
 
-const confirmarDeletar = (id) => {
-  idParaDeletar.value = id
+const confirmarDeletar = (escuderia) => {
+  escuderiaSelecionada.value = escuderia
   dialogDeletar.value = true
 }
 
+// Exclusão de dados
 const executarExclusao = async () => {
-  if (idParaDeletar.value !== null) {
-    escuderias.value = escuderias.value.filter(e => e.id !== idParaDeletar.value)
-    idParaDeletar.value = null
+  if (!escuderiaSelecionada.value?.id) return
+
+  carregandoAcao.value = true
+  try {
+    await api.delete(`/escuderias/${escuderiaSelecionada.value.id}`)
+    dialogDeletar.value = false
+    escuderiaSelecionada.value = null
+    await carregarEscuderias()
+  } catch (err) {
+    console.error('Erro ao excluir escuderia do banco:', err)
+  } finally {
+    carregandoAcao.value = false
   }
-  dialogDeletar.value = false
 }
 
 const carregarEscuderias = async () => {
   try {
     const response = await api.get('/escuderias')
-    if (response.data && response.data.length > 0) {
+    if (response.data) {
       escuderias.value = response.data
       totalEscuderias.value = response.data.length
     }
   } catch (err) {
-    console.error('Carregando dados locais...', err)
+    console.error('Erro ao buscar escuderias na API:', err)
   }
 }
 
