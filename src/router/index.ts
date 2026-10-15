@@ -4,9 +4,8 @@
  * Manual routes for ./src/pages/*.vue
  */
 
-// Composables
+// Criado (08/10/2026) // Atualizações (09/10/2026); (15/10/2026)
 
-// Criado (08/10/2026); // Atualização (09/10/2026)
 import { createRouter, createWebHistory } from 'vue-router'
 import Index from '@/pages/index.vue'
 
@@ -48,6 +47,18 @@ const router = createRouter({
     { 
       path: '/CadastroCarro', 
       component: () => import('@/pages/CadastroCarro.vue') 
+    },
+    { 
+      path: '/PerfilPiloto', 
+      component: () => import('@/pages/PerfilPiloto.vue') 
+    },
+    { 
+      path: '/PerfilEscuderia', 
+      component: () => import('@/pages/PerfilEscuderia.vue') 
+    },
+    { 
+      path: '/PerfilCarro', 
+      component: () => import('@/pages/PerfilCarro.vue') 
     },
   ],
 })

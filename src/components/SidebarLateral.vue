@@ -1,146 +1,131 @@
-<!-- Criado (09/10/2026) / Atualizado (14/10/2026) -->
+<!-- Criado (09/10/2026) /Atualizado (15/10/2026) -->
 <template>
   <v-navigation-drawer
+    app
     permanent
-    color="#18181f"
-    width="240"
-    class="border-r border-grey-darken-3"
+    color="#15151e"
+    width="220"
+    class="border-e border-grey-darken-3 d-flex flex-column justify-space-between"
   >
-    <!-- Logo / Nome da Aplicação -->
-    <div class="pa-5 text-h6 font-weight-black text-white tracking-widest">
-      F1 MANAGER
+    <div>
+      <!-- Logo F1 Manager -->
+      <div class="pa-6 font-weight-black text-white text-h6 tracking-wider border-b border-grey-darken-3">
+        F1 MANAGER
+      </div>
+
+      <!-- Modo Contextual (Cadastro ou Perfil) -->
+      <v-list v-if="modo === 'cadastro' || modo === 'perfil'" nav class="pa-4">
+      
+        <v-list-item
+          class="mb-2 font-weight-black text-grey-lighten-1 cursor-pointer"
+          @click="voltarParaListagem"
+        >
+          <v-list-item-title class="font-weight-black text-subtitle-2">
+            {{ modulo }}
+          </v-list-item-title>
+        </v-list-item>
+
+        <!-- Subitem Ativo em Vermelho (CADASTRO ou PERFIL) -->
+        <v-list-item class="font-weight-black text-red-accent-4 bg-transparent pa-0">
+          <v-list-item-title class="font-weight-black text-subtitle-2 px-2">
+            {{ modo === 'cadastro' ? 'CADASTRO' : 'PERFIL' }}
+          </v-list-item-title>
+        </v-list-item>
+      </v-list>
+
+      <!-- Modo Padrão (Navegação Principal) -->
+      <v-list v-else nav class="pa-4">
+        <v-list-item
+          to="/dashboard"
+          active-class="text-red-accent-4 font-weight-black"
+          class="mb-2 text-grey-lighten-1"
+        >
+          <v-list-item-title class="font-weight-black text-subtitle-2">DASHBOARD</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+          to="/pilotos"
+          active-class="text-red-accent-4 font-weight-black"
+          class="mb-2 text-grey-lighten-1"
+        >
+          <v-list-item-title class="font-weight-black text-subtitle-2">PILOTOS</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+          to="/escuderias"
+          active-class="text-red-accent-4 font-weight-black"
+          class="mb-2 text-grey-lighten-1"
+        >
+          <v-list-item-title class="font-weight-black text-subtitle-2">ESCUDERIAS</v-list-item-title>
+        </v-list-item>
+
+        <v-list-item
+          to="/carros"
+          active-class="text-red-accent-4 font-weight-black"
+          class="mb-2 text-grey-lighten-1"
+        >
+          <v-list-item-title class="font-weight-black text-subtitle-2">CARROS</v-list-item-title>
+        </v-list-item>
+      </v-list>
     </div>
 
-    <v-divider class="border-opacity-25 mb-4"></v-divider>
-
-    <!-- Lista de Navegação -->
-    <v-list v-if="modo === 'padrao'" density="compact" nav class="pa-2">
-      <!-- Item: DASHBOARD -->
-      <v-list-item
-        to="/dashboard"
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          DASHBOARD
-        </v-list-item-title>
-      </v-list-item>
-
-      <!-- Item: PILOTOS -->
-      <v-list-item
-        to="/pilotos"
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          PILOTOS
-        </v-list-item-title>
-      </v-list-item>
-
-      <!-- Item: ESCUDERIAS -->
-      <v-list-item
-        to="/escuderias"
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          ESCUDERIAS
-        </v-list-item-title>
-      </v-list-item>
-
-      <!-- Item: CARROS -->
-      <v-list-item
-        to="/carros"
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          CARROS
-        </v-list-item-title>
-      </v-list-item>
-    </v-list>
-
-    <!-- Lista de Navegação para Telas de Cadastro -->
-    <v-list v-else-if="modo === 'cadastro'" density="compact" nav class="pa-2">
-      <!-- Item: PILOTOS (Navega de volta para a lista) -->
-      <v-list-item
-        :to="origem"
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          {{ labelOrigem }}
-        </v-list-item-title>
-      </v-list-item>
-
-      <!-- Item: CADASTRO -->
-      <v-list-item
-        active-class="active-menu-item"
-        rounded="lg"
-        class="mb-2 py-3 active-menu-item"
-      >
-        <v-list-item-title class="font-weight-black text-body-2 tracking-wider">
-          CADASTRO
-        </v-list-item-title>
-      </v-list-item>
-    </v-list>
+    <!-- Botão SAIR Fixado na Parte Inferior da Sidebar -->
+    <template #append>
+      <div class="pa-4 border-t border-grey-darken-3">
+        <v-list-item
+          class="font-weight-black text-grey-lighten-1 cursor-pointer hover-logout rounded-lg"
+          @click="fazerLogout"
+        >
+          <template #prepend>
+            <v-icon color="red-accent-4" size="small" class="mr-2">mdi-logout</v-icon>
+          </template>
+          <v-list-item-title class="font-weight-black text-subtitle-2 text-red-accent-4">
+            SAIR
+          </v-list-item-title>
+        </v-list-item>
+      </div>
+    </template>
   </v-navigation-drawer>
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 
 const props = defineProps({
   modo: {
     type: String,
-    default: 'padrao' 
+    default: 'padrao' // 'padrao', 'cadastro' ou 'perfil'
   },
-  tipo: {
+  modulo: {
     type: String,
-    default: 'piloto' 
+    default: 'PILOTOS' // 'PILOTOS', 'ESCUDERIAS' ou 'CARROS'
   }
 })
 
-const origem = computed(() => {
-  if (props.tipo === 'escuderia') return '/escuderias'
-  if (props.tipo === 'carro') return '/carros'
-  return '/pilotos'
-})
+const router = useRouter()
 
-const labelOrigem = computed(() => {
-  if (props.tipo === 'escuderia') return 'ESCUDERIAS'
-  if (props.tipo === 'carro') return 'CARROS'
-  return 'PILOTOS'
-})
+const voltarParaListagem = () => {
+  if (props.modulo === 'PILOTOS') router.push('/pilotos')
+  else if (props.modulo === 'ESCUDERIAS') router.push('/escuderias')
+  else if (props.modulo === 'CARROS') router.push('/carros')
+}
+const fazerLogout = () => {
+  // Limpa os dados de autenticação armazenados
+  localStorage.removeItem('token')
+  localStorage.removeItem('user')
+  sessionStorage.clear()
+
+  // Redireciona para a tela de login
+  router.push('/')
+}
 </script>
 
 <style scoped>
-/* Estilo para itens normais do menu */
-:deep(.v-list-item) {
-  color: #9ca3af !important;
-}
+.tracking-wider { letter-spacing: 0.08em !important; }
+.cursor-pointer { cursor: pointer; }
 
-:deep(.v-list-item:hover) {
-  color: #ffffff !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
-}
-
-/* Item Ativo */
-:deep(.active-menu-item) {
-  color: #d50000 !important;
-  background-color: transparent !important;
-}
-
-.tracking-widest {
-  letter-spacing: 0.15em !important;
-}
-
-.tracking-wider {
-  letter-spacing: 0.08em !important;
+.hover-logout:hover {
+  background-color: rgba(225, 6, 0, 0.15) !important;
+  transition: background-color 0.2s ease-in-out;
 }
 </style>

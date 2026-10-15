@@ -1,7 +1,7 @@
-<!-- Criado (14/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
 <template>
   <v-app>
-    <SidebarLateral modo="cadastro" tipo="piloto" />
+    <SidebarLateral modo="cadastro" modulo="PILOTOS" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
@@ -9,7 +9,7 @@
       <!-- Barra Superior -->
       <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          CADASTRO
+          {{ isEdicao ? 'EDITAR PILOTO' : 'CADASTRO' }}
         </div>
       </v-app-bar>
 
@@ -17,7 +17,7 @@
         <v-card class="f1-card-form pa-6" rounded="xl">
           <v-form @submit.prevent="salvarPiloto">
             <!-- Nome do Piloto -->
-            <div class="mb-4">
+            <div class="mb-3">
               <label class="form-label">NOME DO PILOTO</label>
               <v-text-field
                 v-model="form.nome"
@@ -30,7 +30,7 @@
             </div>
 
             <!-- Nacionalidade e Número do Carro -->
-            <v-row density="compact" class="mb-4">
+            <v-row density="compact" class="mb-3">
               <v-col cols="12" sm="8">
                 <label class="form-label">NACIONALIDADE</label>
                 <v-text-field
@@ -44,26 +44,25 @@
               </v-col>
               <v-col cols="12" sm="4">
                 <label class="form-label">NÚMERO DO CARRO (Nº)</label>
-                <v-select
+                <v-text-field
                   v-model="form.numeroCarro"
-                  :items="Array.from({ length: 10000 }, (_, i) => i + 1)"
+                  type="number"
                   placeholder="1"
                   variant="outlined"
                   density="compact"
                   hide-details
                   class="f1-input mt-1"
-                ></v-select>
+                ></v-text-field>
               </v-col>
             </v-row>
 
             <!-- Status, Data de Nascimento, Nº de Títulos -->
-            <v-row density="compact" class="mb-4">
+            <v-row density="compact" class="mb-3">
               <v-col cols="12" sm="4">
                 <label class="form-label">STATUS</label>
                 <v-select
                   v-model="form.status"
-                  :items="['ATIVO', 'APOSENTADO']"
-                  placeholder="SELECIONE"
+                  :items="['ATIVO', 'INATIVO', 'APOSENTADO']"
                   variant="outlined"
                   density="compact"
                   hide-details
@@ -83,20 +82,19 @@
               </v-col>
               <v-col cols="12" sm="4">
                 <label class="form-label">Nº DE TÍTULOS</label>
-                <v-select
+                <v-text-field
                   v-model="form.titulos"
-                  :items="Array.from({ length: 101 }, (_, i) => i)"
-                  placeholder="0"
+                  type="number"
                   variant="outlined"
                   density="compact"
                   hide-details
                   class="f1-input mt-1"
-                ></v-select>
+                ></v-text-field>
               </v-col>
             </v-row>
 
             <!-- Escuderias Vinculadas -->
-            <div class="mb-4">
+            <div class="mb-3">
               <label class="form-label">ESCUDERIAS VINCULADAS (SELECIONE UMA OU MAIS)</label>
               <v-select
                 v-model="form.escuderiasIds"
@@ -104,17 +102,17 @@
                 item-title="nome"
                 item-value="id"
                 multiple
+                chips
                 placeholder="EX: RED BULL RACING"
                 variant="outlined"
                 density="compact"
                 hide-details
-                chips
                 class="f1-input mt-1"
               ></v-select>
             </div>
 
             <!-- Foto de Perfil -->
-            <div class="mb-4">
+            <div class="mb-3">
               <label class="form-label">FOTO DE PERFIL</label>
               <v-text-field
                 v-model="form.fotoUrl"
@@ -133,20 +131,30 @@
                 v-model="form.biografia"
                 placeholder="MÁX 400 CARACTERES"
                 variant="outlined"
-                density="compact"
-                hide-details
                 rows="3"
                 maxlength="400"
+                hide-details
                 class="f1-input mt-1"
               ></v-textarea>
             </div>
 
             <!-- Botões de Ação -->
             <div class="d-flex justify-end gap-3">
-              <v-btn color="#e10600" size="large" class="font-weight-black text-white px-8 rounded-xl btn-f1" type="submit">
+              <v-btn
+                color="red-accent-4"
+                size="large"
+                class="font-weight-black text-white px-8 rounded-xl btn-f1"
+                :loading="salvando"
+                type="submit"
+              >
                 SALVAR
               </v-btn>
-              <v-btn color="#e10600" size="large" class="font-weight-black text-white px-8 rounded-xl btn-f1" @click="cancelar">
+              <v-btn
+                color="red-accent-4"
+                size="large"
+                class="font-weight-black text-white px-8 rounded-xl btn-f1"
+                @click="cancelar"
+              >
                 CANCELAR
               </v-btn>
             </div>
@@ -158,13 +166,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
+const route = useRoute()
 const router = useRouter()
+
+const pilotoId = computed(() => route.query.id)
+const isEdicao = computed(() => !!pilotoId.value)
+
 const escuderiasOpcoes = ref([])
+const salvando = ref(false)
 
 const form = ref({
   nome: '',
@@ -187,12 +201,41 @@ const carregarEscuderias = async () => {
   }
 }
 
-const salvarPiloto = async () => {
+const carregarDadosPiloto = async () => {
+  if (!isEdicao.value) return
   try {
-    await api.post('/pilotos', form.value)
+    const res = await api.get(`/pilotos/${pilotoId.value}`)
+    const p = res.data
+
+    form.value = {
+      nome: p.nome || '',
+      nacionalidade: p.nacionalidade || '',
+      numeroCarro: p.numeroCarro ?? null,
+      status: p.status || 'ATIVO',
+      dataNascimento: p.dataNascimento || '',
+      titulos: p.titulos ?? 0,
+      escuderiasIds: p.escuderias ? p.escuderias.map(e => e.id) : (p.escuderiasIds || []),
+      fotoUrl: p.fotoUrl || '',
+      biografia: p.biografia || ''
+    }
+  } catch (err) {
+    console.error('Erro ao carregar piloto para edição:', err)
+  }
+}
+
+const salvarPiloto = async () => {
+  salvando.value = true
+  try {
+    if (isEdicao.value) {
+      await api.put(`/pilotos/${pilotoId.value}`, form.value)
+    } else {
+      await api.post('/pilotos', form.value)
+    }
     router.push('/pilotos')
   } catch (err) {
     console.error('Erro ao salvar piloto:', err)
+  } finally {
+    salvando.value = false
   }
 }
 
@@ -200,8 +243,9 @@ const cancelar = () => {
   router.push('/pilotos')
 }
 
-onMounted(() => {
-  carregarEscuderias()
+onMounted(async () => {
+  await carregarEscuderias()
+  await carregarDadosPiloto()
 })
 </script>
 
@@ -232,6 +276,7 @@ onMounted(() => {
   background: rgba(240, 240, 245, 0.45) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
   backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 .form-label {
@@ -253,7 +298,18 @@ onMounted(() => {
   font-size: 0.9rem;
 }
 
-.btn-f1 { letter-spacing: 0.08em; }
+:deep(.f1-input input::placeholder),
+:deep(.f1-input textarea::placeholder) {
+  color: #777 !important;
+  font-style: italic;
+  font-weight: 600;
+}
+
+.btn-f1 {
+  letter-spacing: 0.08em;
+  font-size: 0.95rem;
+}
+
 .tracking-widest { letter-spacing: 0.15em !important; }
 .gap-3 { gap: 12px; }
 </style>

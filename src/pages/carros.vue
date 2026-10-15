@@ -1,4 +1,4 @@
-<!-- Criado/Atualizado (13/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizado (13/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -51,8 +51,8 @@
                     <td class="font-weight-bold">{{ carro.ano }}</td>
                     <td>
                       <div class="d-flex justify-center gap-1">
-                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="abrirDialogEdicao(carro)"></v-btn>
-                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(carro.id)"></v-btn>
+                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="editarCarro(carro)"></v-btn>
+                        <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(carro)"></v-btn>
                         <v-btn icon="mdi-eye" size="x-small" variant="text" color="grey-darken-3" @click="visualizarCarro(carro)"></v-btn>
                       </div>
                     </td>
@@ -95,7 +95,7 @@
         </v-row>
       </v-container>
 
-      <!-- Modais -->
+      <!-- Modal de Busca -->
       <v-dialog v-model="dialogBusca" max-width="500">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">BUSCAR CARRO</v-card-title>
@@ -110,49 +110,17 @@
         </v-card>
       </v-dialog>
 
-      <v-dialog v-model="dialogNovo" max-width="500">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">
-            {{ modoEdicao ? 'EDITAR CARRO' : 'NOVO CARRO' }}
-          </v-card-title>
-          <v-card-text>
-            <v-text-field v-model="formCarro.modelo" label="Modelo" variant="outlined" density="compact" class="mt-2"></v-text-field>
-            <v-text-field v-model="formCarro.ano" label="Ano" type="number" variant="outlined" density="compact"></v-text-field>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="dialogNovo = false">Cancelar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="salvarCarro">Salvar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <v-dialog v-model="dialogVisualizar" max-width="400">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">DETALHES DO CARRO</v-card-title>
-          <v-card-text v-if="carroSelecionado">
-            <p><strong>ID:</strong> {{ carroSelecionado.id }}</p>
-            <p><strong>MODELO:</strong> {{ carroSelecionado.modelo }}</p>
-            <p><strong>ANO:</strong> {{ carroSelecionado.ano }}</p>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="red-accent-4" variant="flat" @click="dialogVisualizar = false">Fechar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
       <!-- Modal Confirmar Exclusão -->
       <v-dialog v-model="dialogDeletar" max-width="400">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
           <v-card-title class="font-weight-black text-red-accent-4">CONFIRMAR EXCLUSÃO</v-card-title>
           <v-card-text class="text-subtitle-1">
-            Tem certeza que deseja excluir este carro?
+            Tem certeza que deseja excluir o carro <strong>{{ carroSelecionado?.modelo }}</strong>?
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="grey" variant="text" @click="dialogDeletar = false">Cancelar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="executarExclusao">Excluir</v-btn>
+            <v-btn color="red-accent-4" variant="flat" :loading="carregandoAcao" @click="executarExclusao">Excluir</v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -162,39 +130,31 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
-const carros = ref([
-  { id: 2, modelo: 'RB20', ano: 2024 },
-  { id: 3, modelo: 'RB19', ano: 2023 },
-  { id: 4, modelo: 'W15', ano: 2024 },
-  { id: 5, modelo: 'W14', ano: 2023 },
-  { id: 8, modelo: 'AMR24', ano: 2024 },
-  { id: 10, modelo: 'A524', ano: 2024 },
-])
+const router = useRouter()
 
+const carros = ref([])
 const paginaAtual = ref(1)
 const itensPorPagina = 6
-const totalCarros = ref(22)
+const totalCarros = ref(0)
 
 const dialogBusca = ref(false)
-const dialogNovo = ref(false)
-const dialogVisualizar = ref(false)
 const dialogDeletar = ref(false)
-const modoEdicao = ref(false)
+const carregandoAcao = ref(false)
 
 const termoBusca = ref('')
-const idParaDeletar = ref(null)
 const carroSelecionado = ref(null)
-const formCarro = ref({ id: null, modelo: '', ano: '' })
 
 const carrosFiltrados = computed(() => {
   if (!termoBusca.value) return carros.value
   const termo = termoBusca.value.toLowerCase()
   return carros.value.filter(c => 
-    c.modelo.toLowerCase().includes(termo) || 
-    String(c.ano).includes(termo)
+    c.modelo?.toLowerCase().includes(termo) || 
+    c.motor?.toLowerCase().includes(termo) ||
+    c.ano?.toString().includes(termo)
   )
 })
 
@@ -205,56 +165,47 @@ const carrosPaginados = computed(() => {
   return carrosFiltrados.value.slice(inicio, inicio + itensPorPagina)
 })
 
-const abrirDialogNovo = () => {
-  modoEdicao.value = false
-  formCarro.value = { id: null, modelo: '', ano: '' }
-  dialogNovo.value = true
-}
-
-const abrirDialogEdicao = (carro) => {
-  modoEdicao.value = true
-  formCarro.value = { ...carro }
-  dialogNovo.value = true
+// Redireciona para CadastroCarro passando apenas o ID
+const editarCarro = (carro) => {
+  const id = typeof carro === 'object' ? carro.id : carro
+  router.push({ path: '/CadastroCarro', query: { id } })
 }
 
 const visualizarCarro = (carro) => {
+  const id = typeof carro === 'object' ? carro.id : carro
+  router.push({ path: '/PerfilCarro', query: { id } })
+}
+
+const confirmarDeletar = (carro) => {
   carroSelecionado.value = carro
-  dialogVisualizar.value = true
-}
-
-const salvarCarro = async () => {
-  if (modoEdicao.value) {
-    const idx = carros.value.findIndex(c => c.id === formCarro.value.id)
-    if (idx !== -1) carros.value[idx] = { ...formCarro.value }
-  } else {
-    const novoId = carros.value.length ? Math.max(...carros.value.map(c => c.id)) + 1 : 1
-    carros.value.push({ ...formCarro.value, id: novoId })
-  }
-  dialogNovo.value = false
-}
-
-const confirmarDeletar = (id) => {
-  idParaDeletar.value = id
   dialogDeletar.value = true
 }
 
 const executarExclusao = async () => {
-  if (idParaDeletar.value !== null) {
-    carros.value = carros.value.filter(c => c.id !== idParaDeletar.value)
-    idParaDeletar.value = null
+  if (!carroSelecionado.value?.id) return
+
+  carregandoAcao.value = true
+  try {
+    await api.delete(`/carros/${carroSelecionado.value.id}`)
+    dialogDeletar.value = false
+    carroSelecionado.value = null
+    await carregarCarros()
+  } catch (err) {
+    console.error('Erro ao excluir carro do banco:', err)
+  } finally {
+    carregandoAcao.value = false
   }
-  dialogDeletar.value = false
 }
 
 const carregarCarros = async () => {
   try {
     const response = await api.get('/carros')
-    if (response.data && response.data.length > 0) {
+    if (response.data) {
       carros.value = response.data
       totalCarros.value = response.data.length
     }
   } catch (err) {
-    console.error('Carregando dados locais...', err)
+    console.error('Erro ao buscar carros na API:', err)
   }
 }
 
@@ -276,10 +227,7 @@ onMounted(() => {
 
 .f1-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(15, 15, 20, 0.35) !important;
   backdrop-filter: blur(2px) !important;
 }

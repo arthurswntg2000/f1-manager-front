@@ -51,7 +51,7 @@
                     <td class="font-weight-bold text-uppercase">{{ escuderia.paisOrigem }}</td>
                     <td>
                       <div class="d-flex justify-center gap-1">
-                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="abrirDialogEdicao(escuderia)"></v-btn>
+                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="editarEscuderia(escuderia.id)"></v-btn>
                         <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(escuderia)"></v-btn>
                         <v-btn icon="mdi-eye" size="x-small" variant="text" color="grey-darken-3" @click="visualizarEscuderia(escuderia)"></v-btn>
                       </div>
@@ -167,8 +167,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
+
+const router = useRouter()
 
 const escuderias = ref([])
 const paginaAtual = ref(1)
@@ -177,7 +180,6 @@ const totalEscuderias = ref(0)
 
 const dialogBusca = ref(false)
 const dialogNovo = ref(false)
-const dialogVisualizar = ref(false)
 const dialogDeletar = ref(false)
 const modoEdicao = ref(false)
 const carregandoAcao = ref(false)
@@ -202,15 +204,12 @@ const escuderiasPaginadas = computed(() => {
   return escuderiasFiltradas.value.slice(inicio, inicio + itensPorPagina)
 })
 
-const abrirDialogEdicao = (escuderia) => {
-  modoEdicao.value = true
-  formEscuderia.value = { ...escuderia }
-  dialogNovo.value = true
+const editarEscuderia = (id) => {
+  router.push({ path: '/CadastroEscuderia', query: { id } })
 }
 
 const visualizarEscuderia = (escuderia) => {
-  escuderiaSelecionada.value = escuderia
-  dialogVisualizar.value = true
+  router.push({ path: '/PerfilEscuderia', query: { id: escuderia.id } })
 }
 
 // Salvar / Editar

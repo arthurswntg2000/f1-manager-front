@@ -1,8 +1,7 @@
-<!-- Criado (14/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
 <template>
   <v-app>
-    <!-- Sidebar em modo de cadastro para Escuderia (Mostra ESCUDERIAS e CADASTRO) -->
-    <SidebarLateral modo="cadastro" tipo="escuderia" />
+    <SidebarLateral modo="cadastro" modulo="ESCUDERIAS" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
@@ -10,12 +9,11 @@
       <!-- Barra Superior -->
       <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          CADASTRO
+          {{ isEdicao ? 'EDITAR ESCUDERIA' : 'CADASTRO' }}
         </div>
       </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Card Translúcido do Formulário -->
         <v-card class="f1-card-form pa-6" rounded="xl">
           <v-form @submit.prevent="salvarEscuderia">
             <!-- Nome da Escuderia -->
@@ -60,7 +58,7 @@
                 <v-select
                   v-model="form.titulos"
                   :items="listaTitulos"
-                  placeholder="1"
+                  placeholder="0"
                   variant="outlined"
                   density="compact"
                   hide-details
@@ -174,15 +172,18 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
+const route = useRoute()
 const router = useRouter()
-const carregando = ref(false)
 
-// Gerador dinâmico de 0 a 100 para o número de títulos
+const escuderiaId = computed(() => route.query.id)
+const isEdicao = computed(() => !!escuderiaId.value)
+
+const carregando = ref(false)
 const listaTitulos = Array.from({ length: 101 }, (_, i) => i)
 
 const pilotosOpcoes = ref([])
@@ -209,17 +210,43 @@ const carregarDadosAuxiliares = async () => {
     if (resPilotos.data) pilotosOpcoes.value = resPilotos.data
     if (resCarros.data) carrosOpcoes.value = resCarros.data
   } catch (err) {
-    console.error('Erro ao carregar pilotos/carros da API:', err)
+    console.error('Erro ao carregar pilotos/carros:', err)
+  }
+}
+
+const carregarDadosEscuderia = async () => {
+  if (!isEdicao.value) return
+  try {
+    const res = await api.get(`/escuderias/${escuderiaId.value}`)
+    const e = res.data
+
+    form.value = {
+      nome: e.nome || '',
+      paisOrigem: e.paisOrigem || '',
+      dataFundacao: e.dataFundacao || '',
+      titulos: e.titulos ?? 0,
+      fundador: e.fundador || '',
+      pilotosIds: e.pilotos ? e.pilotos.map(p => p.id) : (e.pilotosIds || []),
+      carrosIds: e.carros ? e.carros.map(c => c.id) : (e.carrosIds || []),
+      urlLogo: e.urlLogo || '',
+      biografia: e.biografia || ''
+    }
+  } catch (err) {
+    console.error('Erro ao carregar escuderia para edição:', err)
   }
 }
 
 const salvarEscuderia = async () => {
   carregando.value = true
   try {
-    await api.post('/escuderias', form.value)
+    if (isEdicao.value) {
+      await api.put(`/escuderias/${escuderiaId.value}`, form.value)
+    } else {
+      await api.post('/escuderias', form.value)
+    }
     router.push('/escuderias')
   } catch (err) {
-    console.error('Erro ao cadastrar escuderia:', err)
+    console.error('Erro ao salvar escuderia:', err)
   } finally {
     carregando.value = false
   }
@@ -229,8 +256,9 @@ const cancelar = () => {
   router.push('/escuderias')
 }
 
-onMounted(() => {
-  carregarDadosAuxiliares()
+onMounted(async () => {
+  await carregarDadosAuxiliares()
+  await carregarDadosEscuderia()
 })
 </script>
 
@@ -241,16 +269,12 @@ onMounted(() => {
   background-image: url('@/assets/f1-manager-logo.jpg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   overflow-y: auto;
 }
 
 .f1-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(15, 15, 20, 0.35) !important;
   backdrop-filter: blur(2px) !important;
 }
@@ -258,7 +282,6 @@ onMounted(() => {
 .z-index-content { position: relative; z-index: 2; }
 .max-width-container { max-width: 850px; }
 
-/* Card Translúcido do Formulário */
 .f1-card-form {
   background: rgba(240, 240, 245, 0.45) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
@@ -273,7 +296,6 @@ onMounted(() => {
   letter-spacing: 0.05em;
 }
 
-/* Customização dos Inputs Vuetify para o tema F1 */
 :deep(.f1-input .v-field) {
   background-color: rgba(220, 220, 225, 0.7) !important;
   border-radius: 12px !important;

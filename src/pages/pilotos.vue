@@ -52,7 +52,7 @@
                     <td class="font-weight-bold text-uppercase">{{ piloto.nacionalidade }}</td>
                     <td>
                       <div class="d-flex justify-center gap-1">
-                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="abrirDialogEdicao(piloto)"></v-btn>
+                        <v-btn icon="mdi-pencil" size="x-small" variant="text" color="amber-darken-3" @click="editarPiloto(piloto.id)"></v-btn>
                         <v-btn icon="mdi-delete" size="x-small" variant="text" color="grey-darken-2" @click="confirmarDeletar(piloto)"></v-btn>
                         <v-btn icon="mdi-eye" size="x-small" variant="text" color="grey-darken-3" @click="visualizarPiloto(piloto)"></v-btn>
                       </div>
@@ -167,8 +167,11 @@
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
+
+const router = useRouter()
 
 const pilotos = ref([])
 const paginaAtual = ref(1)
@@ -177,7 +180,6 @@ const totalPilotos = ref(0)
 
 const dialogBusca = ref(false)
 const dialogNovo = ref(false)
-const dialogVisualizar = ref(false)
 const dialogDeletar = ref(false)
 const modoEdicao = ref(false)
 const carregandoAcao = ref(false)
@@ -202,15 +204,12 @@ const pilotosPaginados = computed(() => {
   return pilotosFiltrados.value.slice(inicio, inicio + itensPorPagina)
 })
 
-const abrirDialogEdicao = (piloto) => {
-  modoEdicao.value = true
-  formPiloto.value = { ...piloto }
-  dialogNovo.value = true
+const editarPiloto = (id) => {
+  router.push({ path: '/CadastroPiloto', query: { id } })
 }
 
 const visualizarPiloto = (piloto) => {
-  pilotoSelecionado.value = piloto
-  dialogVisualizar.value = true
+  router.push({ path: '/PerfilPiloto', query: { id: piloto.id } })
 }
 
 // Atualização de dados

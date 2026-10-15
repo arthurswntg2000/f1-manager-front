@@ -1,8 +1,7 @@
-<!-- Criado (14/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
 <template>
   <v-app>
-    <!-- Sidebar em modo cadastro para Carros (Mostra CARROS e CADASTRO) -->
-    <SidebarLateral modo="cadastro" tipo="carro" />
+    <SidebarLateral modo="cadastro" modulo="CARROS" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
@@ -10,12 +9,11 @@
       <!-- Barra Superior -->
       <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          CADASTRO
+          {{ isEdicao ? 'EDITAR CARRO' : 'CADASTRO' }}
         </div>
       </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Card Translúcido do Formulário -->
         <v-card class="f1-card-form pa-6" rounded="xl">
           <v-form @submit.prevent="salvarCarro">
             <!-- Modelo do Carro -->
@@ -28,6 +26,7 @@
                 density="compact"
                 hide-details
                 class="f1-input mt-1"
+                required
               ></v-text-field>
             </div>
 
@@ -70,6 +69,7 @@
                 variant="outlined"
                 density="compact"
                 hide-details
+                clearable
                 class="f1-input mt-1"
               ></v-select>
             </div>
@@ -130,15 +130,24 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
+const route = useRoute()
 const router = useRouter()
-const carregando = ref(false)
 
-// Lista de anos de fabricação (de 1950 até o ano atual)
+// Obtém o ID numérico limpo vindo da URL
+const carroId = computed(() => {
+  const id = route.query.id
+  if (!id || id === '[object Object]') return null
+  return id
+})
+
+const isEdicao = computed(() => !!carroId.value)
+
+const carregando = ref(false)
 const anoAtual = new Date().getFullYear()
 const anosDisponiveis = Array.from({ length: anoAtual - 1949 }, (_, i) => anoAtual - i)
 
@@ -155,22 +164,55 @@ const form = ref({
 
 const carregarEscuderias = async () => {
   try {
-    const response = await api.get('/escuderias')
-    if (response.data) {
-      escuderiasOpcoes.value = response.data
+    const res = await api.get('/escuderias')
+    if (res.data) escuderiasOpcoes.value = res.data
+  } catch (err) {
+    console.error('Erro ao carregar escuderias:', err)
+  }
+}
+
+const carregarDadosCarro = async () => {
+  if (!isEdicao.value) return
+  try {
+    const res = await api.get(`/carros/${carroId.value}`)
+    const c = res.data
+
+    form.value = {
+      modelo: c.modelo || '',
+      motor: c.motor || '',
+      ano: c.ano ? Number(c.ano) : null,
+      escuderiaId: c.escuderia?.id || c.escuderiaId || null,
+      fotoUrl: c.fotoUrl || '',
+      fichaTecnica: c.fichaTecnica || ''
     }
   } catch (err) {
-    console.error('Erro ao carregar escuderias da API:', err)
+    console.error('Erro ao carregar carro para edição:', err)
   }
 }
 
 const salvarCarro = async () => {
   carregando.value = true
   try {
-    await api.post('/carros', form.value)
+    // Objeto formatado para envio no Spring Boot
+    const payload = {
+      modelo: form.value.modelo,
+      motor: form.value.motor,
+      ano: form.value.ano ? Number(form.value.ano) : null,
+      fotoUrl: form.value.fotoUrl,
+      fichaTecnica: form.value.fichaTecnica,
+      escuderia: form.value.escuderiaId ? { id: form.value.escuderiaId } : null,
+      escuderiaId: form.value.escuderiaId || null
+    }
+
+    if (isEdicao.value) {
+      await api.put(`/carros/${carroId.value}`, payload)
+    } else {
+      await api.post('/carros', payload)
+    }
+
     router.push('/carros')
   } catch (err) {
-    console.error('Erro ao cadastrar carro:', err)
+    console.error('Erro ao salvar carro na API:', err.response?.data || err)
   } finally {
     carregando.value = false
   }
@@ -180,8 +222,9 @@ const cancelar = () => {
   router.push('/carros')
 }
 
-onMounted(() => {
-  carregarEscuderias()
+onMounted(async () => {
+  await carregarEscuderias()
+  await carregarDadosCarro()
 })
 </script>
 
@@ -192,16 +235,12 @@ onMounted(() => {
   background-image: url('@/assets/f1-manager-logo.jpg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   overflow-y: auto;
 }
 
 .f1-overlay {
   position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+  top: 0; left: 0; width: 100%; height: 100%;
   background: rgba(15, 15, 20, 0.35) !important;
   backdrop-filter: blur(2px) !important;
 }
@@ -209,7 +248,6 @@ onMounted(() => {
 .z-index-content { position: relative; z-index: 2; }
 .max-width-container { max-width: 850px; }
 
-/* Card Translúcido do Formulário */
 .f1-card-form {
   background: rgba(240, 240, 245, 0.45) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
@@ -224,7 +262,6 @@ onMounted(() => {
   letter-spacing: 0.05em;
 }
 
-/* Customização dos Inputs Vuetify para o tema F1 */
 :deep(.f1-input .v-field) {
   background-color: rgba(220, 220, 225, 0.7) !important;
   border-radius: 12px !important;
