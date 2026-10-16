@@ -1,4 +1,4 @@
-<!-- Criado (13/10/2026) -->
+<!-- Criado (13/10/2026) / Atualizado (16/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -14,20 +14,35 @@
       </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Linha Superior: Buscar e Novo Piloto -->
+        <!-- Linha Superior: Barra Unificada de Busca e Novo Piloto -->
         <v-row class="mb-4" justify="center">
-          <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="dialogBusca = true">
-              <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
-                BUSCAR PILOTO
-              </span>
-            </v-card>
-          </v-col>
-          <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="$router.push('/CadastroPiloto')">
-              <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
-                + NOVO PILOTO
-              </span>
+          <v-col cols="12" sm="10">
+            <v-card class="f1-btn-card pa-2 px-4 d-flex align-center gap-3" rounded="xl">
+              <!-- Campo de Busca Integrado -->
+              <v-text-field
+                v-model="termoBusca"
+                placeholder="BUSCAR PILOTO (NOME, NACIONALIDADE...)"
+                prepend-inner-icon="mdi-magnify"
+                variant="plain"
+                density="compact"
+                hide-details
+                clearable
+                class="f1-search-input flex-grow-1"
+              ></v-text-field>
+
+              <v-divider vertical class="my-2 border-grey-darken-2"></v-divider>
+
+              <!-- Botão Novo Piloto -->
+              <v-btn
+                color="#e10600"
+                variant="flat"
+                rounded="lg"
+                class="font-weight-black text-white px-5 btn-f1"
+                prepend-icon="mdi-plus"
+                @click="$router.push('/CadastroPiloto')"
+              >
+                NOVO
+              </v-btn>
             </v-card>
           </v-col>
         </v-row>
@@ -95,57 +110,6 @@
           </v-col>
         </v-row>
       </v-container>
-      <!-- Modal de Busca -->
-      <v-dialog v-model="dialogBusca" max-width="500">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">BUSCAR PILOTO</v-card-title>
-          <v-card-text>
-            <v-text-field v-model="termoBusca" label="Nome ou Nacionalidade" variant="outlined" density="compact" class="mt-2" clearable></v-text-field>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="termoBusca = ''; dialogBusca = false">Limpar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="dialogBusca = false">Filtrar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <!-- Modal Cadastro / Edição -->
-      <v-dialog v-model="dialogNovo" max-width="500">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">
-            {{ modoEdicao ? 'EDITAR PILOTO' : 'NOVO PILOTO' }}
-          </v-card-title>
-          <v-card-text>
-            <v-text-field v-model="formPiloto.nome" label="Nome do Piloto" variant="outlined" density="compact" class="mt-2"></v-text-field>
-            <v-text-field v-model="formPiloto.nacionalidade" label="Nacionalidade" variant="outlined" density="compact"></v-text-field>
-            <v-text-field v-model="formPiloto.numeroCarro" label="Número do Carro" type="number" variant="outlined" density="compact"></v-text-field>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="dialogNovo = false">Cancelar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="salvarPiloto">Salvar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
-      <!-- Modal Visualizar -->
-      <v-dialog v-model="dialogVisualizar" max-width="400">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">DETALHES DO PILOTO</v-card-title>
-          <v-card-text v-if="pilotoSelecionado">
-            <p><strong>ID:</strong> {{ pilotoSelecionado.id }}</p>
-            <p><strong>NOME:</strong> {{ pilotoSelecionado.nome }}</p>
-            <p><strong>NACIONALIDADE:</strong> {{ pilotoSelecionado.nacionalidade }}</p>
-            <p><strong>NÚMERO DO CARRO:</strong> {{ pilotoSelecionado.numeroCarro || 'S/N' }}</p>
-            <p><strong>BIOGRAFIA:</strong> {{ pilotoSelecionado.biografia || 'Não informada' }}</p>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="red-accent-4" variant="flat" @click="dialogVisualizar = false">Fechar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
 
       <!-- Modal Confirmar Exclusão -->
       <v-dialog v-model="dialogDeletar" max-width="400">
@@ -169,6 +133,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
 const router = useRouter()
@@ -178,22 +143,19 @@ const paginaAtual = ref(1)
 const itensPorPagina = 6
 const totalPilotos = ref(0)
 
-const dialogBusca = ref(false)
-const dialogNovo = ref(false)
 const dialogDeletar = ref(false)
-const modoEdicao = ref(false)
 const carregandoAcao = ref(false)
 
 const termoBusca = ref('')
 const pilotoSelecionado = ref(null)
-const formPiloto = ref({ id: null, nome: '', nacionalidade: '', numeroCarro: null })
 
 const pilotosFiltrados = computed(() => {
   if (!termoBusca.value) return pilotos.value
   const termo = termoBusca.value.toLowerCase()
   return pilotos.value.filter(p => 
     p.nome?.toLowerCase().includes(termo) || 
-    p.nacionalidade?.toLowerCase().includes(termo)
+    p.nacionalidade?.toLowerCase().includes(termo) ||
+    p.id?.toString().includes(termo)
   )
 })
 
@@ -212,24 +174,6 @@ const visualizarPiloto = (piloto) => {
   router.push({ path: '/PerfilPiloto', query: { id: piloto.id } })
 }
 
-// Atualização de dados
-const salvarPiloto = async () => {
-  carregandoAcao.value = true
-  try {
-    if (modoEdicao.value) {
-    await api.put(`/pilotos/${formPiloto.value.id}`, formPiloto.value)
-  } else {
-    await api.post('/pilotos', formPiloto.value)
-  }
-  dialogNovo.value = false
-  await carregarPilotos() // Recarrega os dados do banco
-  } catch (err) {
-    console.error('Erro ao salvar/editar piloto no banco:', err)
-  } finally {
-    carregandoAcao.value = false
-  }
-}
-
 const confirmarDeletar = (piloto) => {
   pilotoSelecionado.value = piloto
   dialogDeletar.value = true
@@ -242,11 +186,12 @@ const executarExclusao = async () => {
 
   try {
     await api.delete(`/pilotos/${pilotoSelecionado.value.id}`)
+    registrarAtividade('PILOTO', `Piloto removido do sistema: ${pilotoSelecionado.value.nome}`)
     dialogDeletar.value = false
     pilotoSelecionado.value = null
-    await carregarPilotos() // Recarrega os dados atualizados do banco
+    await carregarPilotos()
   } catch (err) {
-    console.error('Erro ao excluir piloto do banco:', err)
+    console.error('Erro ao excluir piloto:', err)
   } finally {
     carregandoAcao.value = false
   }
@@ -294,14 +239,42 @@ onMounted(() => {
 .z-index-content { position: relative; z-index: 2; }
 .max-width-container { max-width: 1000px; }
 
+/* Barra Unificada de Busca e Botão */
 .f1-btn-card {
-  background: rgba(240, 240, 245, 0.82) !important;
+  background: rgba(240, 240, 245, 0.85) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
   backdrop-filter: blur(10px);
-  transition: transform 0.2s, background-color 0.2s;
 }
 
-.f1-btn-card:hover { background: rgba(255, 255, 255, 0.95) !important; }
+:deep(.f1-search-input input) {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #111 !important;
+  letter-spacing: 0.05em;
+}
+
+:deep(.f1-search-input input::placeholder) {
+  color: #555 !important;
+  font-weight: 700;
+}
+
+/* Visibilidade nítida do ícone da Lupa no Vuetify */
+:deep(.f1-search-input .v-field__prepend-inner .v-icon) {
+  color: #111111 !important;
+  opacity: 1 !important;
+  font-size: 1.25rem !important;
+}
+
+/* Visibilidade nítida do ícone de limpar */
+:deep(.f1-search-input .v-field__clearable .v-icon) {
+  color: #111111 !important;
+  opacity: 0.8 !important;
+}
+
+.btn-f1 {
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
 
 .f1-card-table {
   background: rgba(240, 240, 245, 0.3) !important;
@@ -317,8 +290,8 @@ onMounted(() => {
 }
 
 .tracking-widest { letter-spacing: 0.15em !important; }
-.tracking-wider { letter-spacing: 0.08em !important; }
 .cursor-pointer { cursor: pointer; }
 .gap-1 { gap: 4px; }
+.gap-3 { gap: 12px; }
 .gap-4 { gap: 16px; }
 </style>

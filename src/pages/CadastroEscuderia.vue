@@ -1,4 +1,4 @@
-<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="ESCUDERIAS" />
@@ -175,6 +175,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -241,8 +242,10 @@ const salvarEscuderia = async () => {
   try {
     if (isEdicao.value) {
       await api.put(`/escuderias/${escuderiaId.value}`, form.value)
+      registrarAtividade('ESCUDERIA', `Escuderia atualizada: ${form.value.nome}`)
     } else {
       await api.post('/escuderias', form.value)
+      registrarAtividade('ESCUDERIA', `Nova escuderia registrada: ${form.value.nome}`)
     }
     router.push('/escuderias')
   } catch (err) {

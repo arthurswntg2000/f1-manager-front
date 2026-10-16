@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) / Atualizado (13/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizado (16/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -6,6 +6,7 @@
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
 
+      <!-- Barra Superior -->
       <v-app-bar flat color="#15151e" height="65" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           CARROS
@@ -13,35 +14,50 @@
       </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Linha Superior -->
+        <!-- Linha Superior: Barra Unificada de Busca e Novo Carro -->
         <v-row class="mb-4" justify="center">
-          <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="dialogBusca = true">
-              <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
-                BUSCAR CARRO
-              </span>
-            </v-card>
-          </v-col>  
-          <v-col cols="12" sm="5">
-            <v-card class="f1-btn-card pa-3 text-center cursor-pointer" rounded="xl" @click="$router.push('/CadastroCarro')">
-              <span class="font-weight-black text-grey-darken-4 text-subtitle-2 tracking-wider">
-                + NOVO CARRO
-              </span>
+          <v-col cols="12" sm="10">
+            <v-card class="f1-btn-card pa-2 px-4 d-flex align-center gap-3" rounded="xl">
+              <!-- Campo de Busca Integrado -->
+              <v-text-field
+                v-model="termoBusca"
+                placeholder="BUSCAR CARRO (MODELO, MOTOR, ANO...)"
+                prepend-inner-icon="mdi-magnify"
+                variant="plain"
+                density="compact"
+                hide-details
+                clearable
+                class="f1-search-input flex-grow-1"
+              ></v-text-field>
+
+              <v-divider vertical class="my-2 border-grey-darken-2"></v-divider>
+
+              <!-- Botão + NOVO -->
+              <v-btn
+                color="#e10600"
+                variant="flat"
+                rounded="lg"
+                class="font-weight-black text-white px-5 btn-f1"
+                prepend-icon="mdi-plus"
+                @click="$router.push('/CadastroCarro')"
+              >
+                NOVO
+              </v-btn>
             </v-card>
           </v-col>
         </v-row>
 
-        <!-- Tabela -->
+        <!-- Tabela de Carros -->
         <v-row justify="center">
           <v-col cols="12" sm="10">
             <v-card class="f1-card-table pa-6" rounded="xl">
-              <v-table class="bg-transparent text-grey-darken-4 text-center">
+              <v-table class="bg-transparent text-grey-darken-4 text-center custom-f1-table">
                 <thead>
                   <tr>
-                    <th class="text-center font-weight-black text-grey-darken-4">ID</th>
-                    <th class="text-center font-weight-black text-grey-darken-4">MODELO</th>
-                    <th class="text-center font-weight-black text-grey-darken-4">ANO</th>
-                    <th class="text-center font-weight-black text-grey-darken-4">AÇÕES</th>
+                    <th class="text-center font-weight-black text-grey-darken-4" style="width: 15%;">ID</th>
+                    <th class="text-center font-weight-black text-grey-darken-4" style="width: 30%;">MODELO</th>
+                    <th class="text-center font-weight-black text-grey-darken-4" style="width: 25%;">ANO</th>
+                    <th class="text-center font-weight-black text-grey-darken-4" style="width: 20%;">AÇÕES</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -65,7 +81,7 @@
                 </tbody>
               </v-table>
 
-              <!-- Paginação -->
+              <!-- Paginação Estilizada -->
               <div class="f1-pagination mt-6 py-2 px-4 d-flex justify-center align-center gap-4" rounded="xl">
                 <v-btn icon="mdi-chevron-left" variant="text" size="small" color="grey-darken-4" :disabled="paginaAtual === 1" @click="paginaAtual--"></v-btn>
                 <span 
@@ -95,21 +111,6 @@
         </v-row>
       </v-container>
 
-      <!-- Modal de Busca -->
-      <v-dialog v-model="dialogBusca" max-width="500">
-        <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
-          <v-card-title class="font-weight-black text-red-accent-4">BUSCAR CARRO</v-card-title>
-          <v-card-text>
-            <v-text-field v-model="termoBusca" label="Modelo ou Ano" variant="outlined" density="compact" class="mt-2" clearable></v-text-field>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn color="grey" variant="text" @click="termoBusca = ''; dialogBusca = false">Limpar</v-btn>
-            <v-btn color="red-accent-4" variant="flat" @click="dialogBusca = false">Filtrar</v-btn>
-          </v-card-actions>
-        </v-card>
-      </v-dialog>
-
       <!-- Modal Confirmar Exclusão -->
       <v-dialog v-model="dialogDeletar" max-width="400">
         <v-card class="pa-4 bg-grey-darken-4 text-white" rounded="lg">
@@ -132,6 +133,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
 const router = useRouter()
@@ -141,7 +143,6 @@ const paginaAtual = ref(1)
 const itensPorPagina = 6
 const totalCarros = ref(0)
 
-const dialogBusca = ref(false)
 const dialogDeletar = ref(false)
 const carregandoAcao = ref(false)
 
@@ -154,7 +155,8 @@ const carrosFiltrados = computed(() => {
   return carros.value.filter(c => 
     c.modelo?.toLowerCase().includes(termo) || 
     c.motor?.toLowerCase().includes(termo) ||
-    c.ano?.toString().includes(termo)
+    c.ano?.toString().includes(termo) ||
+    c.id?.toString().includes(termo)
   )
 })
 
@@ -165,7 +167,6 @@ const carrosPaginados = computed(() => {
   return carrosFiltrados.value.slice(inicio, inicio + itensPorPagina)
 })
 
-// Redireciona para CadastroCarro passando apenas o ID
 const editarCarro = (carro) => {
   const id = typeof carro === 'object' ? carro.id : carro
   router.push({ path: '/CadastroCarro', query: { id } })
@@ -183,10 +184,14 @@ const confirmarDeletar = (carro) => {
 
 const executarExclusao = async () => {
   if (!carroSelecionado.value?.id) return
-
   carregandoAcao.value = true
+
   try {
     await api.delete(`/carros/${carroSelecionado.value.id}`)
+    
+    // Registra a remoção de atividade
+    registrarAtividade('CARRO', `Carro removido do sistema: ${carroSelecionado.value.modelo}`)
+
     dialogDeletar.value = false
     carroSelecionado.value = null
     await carregarCarros()
@@ -235,20 +240,58 @@ onMounted(() => {
 .z-index-content { position: relative; z-index: 2; }
 .max-width-container { max-width: 1000px; }
 
+/* Barra Unificada de Busca e Botão Novo */
 .f1-btn-card {
-  background: rgba(240, 240, 245, 0.82) !important;
+  background: rgba(240, 240, 245, 0.85) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
   backdrop-filter: blur(10px);
-  transition: transform 0.2s, background-color 0.2s;
 }
 
-.f1-btn-card:hover { background: rgba(255, 255, 255, 0.95) !important; }
+:deep(.f1-search-input input) {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: #111 !important;
+  letter-spacing: 0.05em;
+}
+
+:deep(.f1-search-input input::placeholder) {
+  color: #555 !important;
+  font-weight: 700;
+}
+
+/* Garante visibilidade da Lupa */
+:deep(.f1-search-input .v-field__prepend-inner .v-icon) {
+  color: #111111 !important;
+  opacity: 1 !important;
+  font-size: 1.25rem !important;
+}
+
+:deep(.f1-search-input .v-field__clearable .v-icon) {
+  color: #111111 !important;
+  opacity: 0.8 !important;
+}
+
+.btn-f1 {
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+}
 
 .f1-card-table {
   background: rgba(240, 240, 245, 0.3) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+}
+
+.custom-f1-table table {
+  table-layout: fixed;
+  width: 100%;
+}
+
+.custom-f1-table th,
+.custom-f1-table td {
+  text-align: center !important;
+  vertical-align: middle !important;
 }
 
 .f1-pagination {
@@ -258,8 +301,8 @@ onMounted(() => {
 }
 
 .tracking-widest { letter-spacing: 0.15em !important; }
-.tracking-wider { letter-spacing: 0.08em !important; }
 .cursor-pointer { cursor: pointer; }
 .gap-1 { gap: 4px; }
+.gap-3 { gap: 12px; }
 .gap-4 { gap: 16px; }
 </style>

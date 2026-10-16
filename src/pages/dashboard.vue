@@ -14,80 +14,57 @@
       </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Cards de Totais na Parte Superior (Estilo Idêntico ao Atividades Recentes) -->
-        <v-row density="compact" justify="center" class="mb-2">
-          <v-col cols="12" sm="4">
+        <!-- Cards de Métricas -->
+        <v-row density="comfortable" class="mb-4">
+          <v-col cols="12" md="4">
             <v-card class="f1-card-metric pa-4 text-center" rounded="xl">
-              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest">
-                TOTAL DE PILOTOS
-              </div>
-              <div class="text-h4 font-weight-black text-grey-darken-4 mt-1">
-                {{ totalPilotos }}
-              </div>
+              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest mb-1">TOTAL DE PILOTOS</div>
+              <div class="text-h4 font-weight-black text-black">{{ totalPilotos }}</div>
             </v-card>
           </v-col>
 
-          <v-col cols="12" sm="4">
+          <v-col cols="12" md="4">
             <v-card class="f1-card-metric pa-4 text-center" rounded="xl">
-              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest">
-                TOTAL DE ESCUDERIAS
-              </div>
-              <div class="text-h4 font-weight-black text-grey-darken-4 mt-1">
-                {{ totalEscuderias }}
-              </div>
+              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest mb-1">TOTAL DE ESCUDERIAS</div>
+              <div class="text-h4 font-weight-black text-black">{{ totalEscuderias }}</div>
             </v-card>
           </v-col>
 
-          <v-col cols="12" sm="4">
+          <v-col cols="12" md="4">
             <v-card class="f1-card-metric pa-4 text-center" rounded="xl">
-              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest">
-                TOTAL DE CARROS
-              </div>
-              <div class="text-h4 font-weight-black text-grey-darken-4 mt-1">
-                {{ totalCarros }}
-              </div>
+              <div class="text-caption font-weight-black text-grey-darken-4 tracking-widest mb-1">TOTAL DE CARROS</div>
+              <div class="text-h4 font-weight-black text-black">{{ totalCarros }}</div>
             </v-card>
           </v-col>
         </v-row>
 
         <!-- Bloco de Atividades Recentes -->
-        <v-row justify="center">
+        <v-row>
           <v-col cols="12">
-            <v-card class="f1-card-table pa-6" rounded="xl">
-              <div class="text-center font-weight-black text-grey-darken-4 text-subtitle-1 tracking-widest mb-4">
+            <v-card class="f1-card-metric pa-6" rounded="xl">
+              <div class="text-center font-weight-black text-grey-darken-4 text-subtitle-1 tracking-widest mb-6">
                 ATIVIDADES RECENTES
               </div>
 
               <!-- Lista de Atividades -->
-              <v-list class="bg-transparent pa-0" density="compact">
-                <v-list-item
-                  v-for="(atividade, index) in atividades"
-                  :key="index"
-                  class="border-b border-grey-darken-2 py-2"
+              <v-list v-if="atividades.length > 0" class="bg-transparent pa-0">
+                <div
+                  v-for="(atividade, index) in atividades" 
+                  :key="atividade.id || index"
+                  class="d-flex justify-space-between align-center py-3 px-4 my-1 activity-row rounded-lg"
                 >
-                  <template #prepend>
-                    <v-icon :color="atividade.cor" size="small" class="mr-3">
-                      {{ atividade.icone }}
-                    </v-icon>
-                  </template>
-
-                  <v-list-item-title class="font-weight-black text-grey-darken-4 text-body-2">
+                  <span class="font-weight-black text-grey-darken-4 text-body-2">
                     {{ atividade.descricao }}
-                  </v-list-item-title>
-
-                  <template #append>
-                    <span class="text-caption text-grey-darken-3 font-weight-bold">
-                      {{ atividade.tempo }}
-                    </span>
-                  </template>
-                </v-list-item>
-
-                <v-list-item v-if="atividades.length === 0" class="text-center">
-                  <v-list-item-title class="text-grey-darken-2 font-weight-bold">
-                    Nenhuma atividade recente registrada.
-                  </v-list-item-title>
-                </v-list-item>
+                  </span>
+                  <span class="font-weight-bold text-grey-darken-2 text-caption ms-4 text-no-wrap">
+                    {{ atividade.tempoRelativo }}
+                  </span>
+                </div>
               </v-list>
+
+              <div v-else class="text-center py-8 text-grey-darken-2 font-weight-bold">
+                Nenhuma atividade registrada até o momento.
+              </div>
             </v-card>
           </v-col>
         </v-row>
@@ -97,34 +74,19 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
+import { buscarAtividades } from '@/services/activityLogger'
 
 const totalPilotos = ref(0)
 const totalEscuderias = ref(0)
 const totalCarros = ref(0)
+const atividades = ref([])
 
-const atividades = ref([
-  {
-    descricao: 'Novo piloto registrado: Fernando Alonso',
-    tempo: 'Há 10 min'
-  },
-  {    
-    descricao: 'Escuderia atualizada: Aston Martin',
-    tempo: 'Há 1 hora'
-  },
-  {
-    descricao: 'Carro cadastrado: AMR24',
-    tempo: 'Há 3 horas'
-  },
-  {
-    descricao: 'Carro removido do sistema: RB19',
-    tempo: 'Ontem'
-  }
-])
+let timerAtualizacao = null
 
-const carregarTotais = async () => {
+const carregarMetricas = async () => {
   try {
     const [resPilotos, resEscuderias, resCarros] = await Promise.all([
       api.get('/pilotos'),
@@ -132,16 +94,30 @@ const carregarTotais = async () => {
       api.get('/carros')
     ])
 
-    if (resPilotos.data) totalPilotos.value = resPilotos.data.length
-    if (resEscuderias.data) totalEscuderias.value = resEscuderias.data.length
-    if (resCarros.data) totalCarros.value = resCarros.data.length
+    totalPilotos.value = resPilotos.data?.length || 0
+    totalEscuderias.value = resEscuderias.data?.length || 0
+    totalCarros.value = resCarros.data?.length || 0
   } catch (err) {
     console.error('Erro ao carregar totais do Dashboard:', err)
   }
 }
 
+const atualizarAtividades = () => {
+  atividades.value = buscarAtividades()
+}
+
 onMounted(() => {
-  carregarTotais()
+  carregarMetricas()
+  atualizarAtividades()
+
+  // Recalcula o tempo relativo em tempo real a cada 30 segundos
+  timerAtualizacao = setInterval(() => {
+    atualizarAtividades()
+  }, 30000)
+})
+
+onUnmounted(() => {
+  if (timerAtualizacao) clearInterval(timerAtualizacao)
 })
 </script>
 
@@ -152,7 +128,6 @@ onMounted(() => {
   background-image: url('@/assets/f1-manager-logo.jpg');
   background-size: cover;
   background-position: center;
-  background-repeat: no-repeat;
   overflow-y: auto;
 }
 
@@ -168,20 +143,21 @@ onMounted(() => {
 
 /* Cards de Métricas com o mesmo estilo translúcido de Atividades Recentes */
 .f1-card-metric {
-  background: rgba(240, 240, 245, 0.45) !important;
+  background: rgba(240, 240, 245, 0.5) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
 }
 
-/* Card de Atividades Recentes */
-.f1-card-table {
-  background: rgba(240, 240, 245, 0.45) !important;
-  border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  min-height: 400px;
+.activity-row {
+  border-bottom: 1px solid rgba(180, 180, 190, 0.3);
+  transition: background-color 0.2s;
+}
+
+.activity-row:hover {
+  background: rgba(255, 255, 255, 0.25);
 }
 
 .tracking-widest { letter-spacing: 0.15em !important; }
+.text-no-wrap { white-space: nowrap; }
 </style>

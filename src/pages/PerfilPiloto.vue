@@ -1,4 +1,4 @@
-<!-- Criado (15/10/2026) -->
+<!-- Criado/Atualizado (16/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="perfil" modulo="PILOTOS" />
@@ -13,112 +13,142 @@
         </div>
       </v-app-bar>
 
-      <v-container fluid class="pa-6 z-index-content max-width-container">
-        <!-- Indicador de Carregamento -->
-        <div v-if="carregando" class="text-center py-12">
-          <v-progress-circular indeterminate color="red-accent-4" size="64"></v-progress-circular>
-        </div>
-
-        <div v-else-if="piloto" class="d-flex flex-column gap-4">
-          <!-- Card 1: Informações Principais do Piloto -->
-          <v-card class="f1-card-profile pa-6" rounded="xl">
-            <v-row align="center">
-              <v-col cols="12" sm="4" class="text-center">
-                <v-img
-                  :src="piloto.fotoUrl || 'https://via.placeholder.com/220x280?text=Sem+Foto'"
-                  height="260"
-                  cover
-                  class="rounded-lg shadow-sm"
-                ></v-img>
-              </v-col>
-
-              <v-col cols="12" sm="8">
-                <h1 class="text-h4 font-weight-black text-red-accent-4 mb-4 text-uppercase">
-                  {{ piloto.nome }}
-                </h1>
-
-                <div class="info-grid text-black">
-                  <div class="info-label">NACIONALIDADE</div>
-                  <div class="info-value">{{ piloto.nacionalidade?.toUpperCase() || 'NÃO INFORMADA' }}</div>
-
-                  <div class="info-label">DATA DE NASCIMENTO</div>
-                  <div class="info-value">{{ piloto.dataNascimento || 'NÃO INFORMADA' }}</div>
-
-                  <div class="info-label">Nº DO CARRO</div>
-                  <div class="info-value">{{ piloto.numeroCarro ?? 'S/N' }}</div>
-
-                  <div class="info-label">TÍTULOS</div>
-                  <div class="info-value">{{ piloto.titulos ?? 0 }}</div>
-
-                  <div class="info-label">STATUS</div>
-                  <div class="info-value">{{ piloto.status || 'EM ATIVIDADE' }}</div>
+      <v-container fluid class="pa-6 z-index-content full-page-container">
+        <!-- Linha Principal ocupando 100% da altura restante -->
+        <v-row density="comfortable" class="full-height-row">
+          
+          <!-- COLUNA DA ESQUERDA: Perfil do Piloto (Ocupa a altura inteira) -->
+          <v-col cols="12" md="5" lg="4" class="full-height-col">
+            <v-card class="f1-card-profile pa-6 h-100 d-flex flex-column justify-space-between" rounded="xl">
+              <div>
+                <!-- Foto / Imagem do Piloto -->
+                <div class="text-center mb-4">
+                  <v-img
+                    v-if="piloto.fotoUrl"
+                    :src="piloto.fotoUrl"
+                    height="240"
+                    cover
+                    class="rounded-lg border mx-auto"
+                  ></v-img>
+                  <div v-else class="sem-foto-placeholder d-flex align-center justify-center rounded-lg mx-auto">
+                    <span class="text-grey-darken-1 font-weight-bold text-h6">Sem Foto</span>
+                  </div>
                 </div>
-              </v-col>
-            </v-row>
-          </v-card>
 
-          <!-- Card 2: Biografia -->
-          <v-card class="f1-card-profile pa-6" rounded="xl">
-            <h2 class="text-h5 font-weight-black text-red-accent-4 text-center mb-3">BIOGRAFIA</h2>
-            <p class="text-body-1 text-black font-weight-medium lh-relaxed text-justify">
-              {{ piloto.biografia || 'Sem biografia cadastrada para este piloto.' }}
-            </p>
-          </v-card>
+                <!-- Nome do Piloto -->
+                <h2 class="text-h4 font-weight-black text-red-accent-4 mb-4 text-uppercase text-center line-height-tight">
+                  {{ piloto.nome || 'NOME DO PILOTO' }}
+                </h2>
+              </div>
 
-          <!-- Card 3: Escuderias Vinculadas -->
-          <v-card class="f1-card-profile pa-6" rounded="xl">
-            <h2 class="text-h5 font-weight-black text-red-accent-4 text-center mb-4">ESCUDERIAS</h2>
-            <v-table class="bg-transparent text-black text-center">
-              <thead>
-                <tr>
-                  <th class="text-center font-weight-black th-style">ESCUDO</th>
-                  <th class="text-center font-weight-black th-style">NOME</th>
-                  <th class="text-center font-weight-black th-style">PAÍS</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr v-for="escuderia in piloto.escuderias || []" :key="escuderia.id">
-                  <td class="pa-2">
-                    <v-img :src="escuderia.urlLogo || 'https://via.placeholder.com/60x40?text=Logo'" height="35" contain></v-img>
-                  </td>
-                  <td class="font-weight-black text-uppercase">{{ escuderia.nome }}</td>
-                  <td class="font-weight-bold text-uppercase">{{ escuderia.paisOrigem || 'N/A' }}</td>
-                </tr>
-                <tr v-if="!piloto.escuderias || piloto.escuderias.length === 0">
-                  <td colspan="3" class="text-center py-4 font-weight-bold text-grey-darken-1">
-                    Nenhuma escuderia vinculada a este piloto.
-                  </td>
-                </tr>
-              </tbody>
-            </v-table>
-          </v-card>
-        </div>
+              <!-- Dados Pessoais do Piloto (Empurrados para preencher o card) -->
+              <v-list class="bg-transparent pa-0 my-auto" density="comfortable">
+                <div class="d-flex justify-between py-2 border-b border-grey-lighten-2">
+                  <span class="font-weight-black text-grey-darken-4 text-subtitle-2">NACIONALIDADE:</span>
+                  <span class="font-weight-black text-black text-subtitle-1 text-uppercase text-right">{{ piloto.nacionalidade || '-' }}</span>
+                </div>
+                
+                <div class="d-flex justify-between py-2 border-b border-grey-lighten-2 mt-2">
+                  <span class="font-weight-black text-grey-darken-4 text-subtitle-2">DATA DE NASCIMENTO:</span>
+                  <span class="font-weight-black text-black text-subtitle-1 text-right">{{ piloto.dataNascimento || '-' }}</span>
+                </div>
+
+                <div class="d-flex justify-between py-2 border-b border-grey-lighten-2 mt-2">
+                  <span class="font-weight-black text-grey-darken-4 text-subtitle-2">Nº DO CARRO:</span>
+                  <span class="font-weight-black text-black text-subtitle-1 text-right">{{ piloto.numeroCarro ?? '-' }}</span>
+                </div>
+
+                <div class="d-flex justify-between py-2 border-b border-grey-lighten-2 mt-2">
+                  <span class="font-weight-black text-grey-darken-4 text-subtitle-2">TÍTULOS:</span>
+                  <span class="font-weight-black text-black text-subtitle-1 text-right">{{ piloto.titulos ?? 0 }}</span>
+                </div>
+
+                <div class="d-flex justify-between py-2 mt-2">
+                  <span class="font-weight-black text-grey-darken-4 text-subtitle-2">STATUS:</span>
+                  <span class="font-weight-black text-black text-subtitle-1 text-uppercase text-right">{{ piloto.status || '-' }}</span>
+                </div>
+              </v-list>
+            </v-card>
+          </v-col>
+
+          <!-- COLUNA DA DIREITA: Biografia (Cima) + Escuderias (Baixo) -->
+          <v-col cols="12" md="7" lg="8" class="full-height-col d-flex flex-column gap-4">
+            
+            <!-- BIOGRAFIA (Divide a altura igualitariamente) -->
+            <v-card class="f1-card-profile pa-6 right-half-card overflow-y-auto" rounded="xl">
+              <div class="text-left font-weight-black text-red-accent-4 text-h5 tracking-widest mb-3 border-b border-grey-lighten-2 pb-1">
+                BIOGRAFIA
+              </div>
+              <p class="text-body-1 font-weight-medium text-grey-darken-4 text-justify line-height-relaxed">
+                {{ piloto.biografia || 'Nenhuma biografia cadastrada para este piloto.' }}
+              </p>
+            </v-card>
+
+            <!-- ESCUDERIAS VINCULADAS (Divide a altura igualitariamente) -->
+            <v-card class="f1-card-profile pa-6 right-half-card overflow-y-auto" rounded="xl">
+              <div class="text-left font-weight-black text-red-accent-4 text-h5 tracking-widest mb-3 border-b border-grey-lighten-2 pb-1">
+                ESCUDERIAS
+              </div>
+
+              <v-table v-if="piloto.escuderias && piloto.escuderias.length > 0" class="bg-transparent text-center text-subtitle-1">
+                <thead>
+                  <tr>
+                    <th class="text-center font-weight-black text-grey-darken-4 text-subtitle-2">ESCUDO</th>
+                    <th class="text-center font-weight-black text-grey-darken-4 text-subtitle-2">NOME</th>
+                    <th class="text-center font-weight-black text-grey-darken-4 text-subtitle-2">PAÍS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="escuderia in piloto.escuderias" :key="escuderia.id">
+                    <td class="py-2">
+                      <v-img :src="escuderia.urlLogo" max-width="40" class="mx-auto" contain></v-img>
+                    </td>
+                    <td class="font-weight-black text-uppercase">{{ escuderia.nome }}</td>
+                    <td class="font-weight-bold text-uppercase">{{ escuderia.paisOrigem }}</td>
+                  </tr>
+                </tbody>
+              </v-table>
+
+              <div v-else class="text-center py-6 text-body-1 font-weight-bold text-grey-darken-2">
+                Nenhuma escuderia vinculada a este piloto.
+              </div>
+            </v-card>
+
+          </v-col>
+        </v-row>
       </v-container>
     </v-main>
   </v-app>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 
 const route = useRoute()
-const piloto = ref(null)
-const carregando = ref(true)
+const pilotoId = computed(() => route.query.id)
+
+const piloto = ref({
+  nome: '',
+  nacionalidade: '',
+  dataNascimento: '',
+  numeroCarro: null,
+  titulos: 0,
+  status: '',
+  biografia: '',
+  fotoUrl: '',
+  escuderias: []
+})
 
 const carregarPiloto = async () => {
-  const id = route.params.id || route.query.id
-  if (!id) return
-  carregando.value = true
+  if (!pilotoId.value) return
   try {
-    const res = await api.get(`/pilotos/${id}`)
-    piloto.value = res.data
+    const res = await api.get(`/pilotos/${pilotoId.value}`)
+    if (res.data) piloto.value = res.data
   } catch (err) {
-    console.error('Erro ao carregar perfil do piloto:', err)
-  } finally {
-    carregando.value = false
+    console.error('Erro ao buscar dados do piloto:', err)
   }
 }
 
@@ -130,11 +160,11 @@ onMounted(() => {
 <style scoped>
 .f1-bg {
   position: relative;
-  min-height: 100vh;
+  height: 100vh;
+  overflow: hidden;
   background-image: url('@/assets/f1-manager-logo.jpg');
   background-size: cover;
   background-position: center;
-  overflow-y: auto;
 }
 
 .f1-overlay {
@@ -145,8 +175,26 @@ onMounted(() => {
 }
 
 .z-index-content { position: relative; z-index: 2; }
-.max-width-container { max-width: 900px; }
 
+/* Container com altura total descontando apenas a app-bar de 65px */
+.full-page-container {
+  height: calc(100vh - 80px) !important;
+  max-width: 1450px !important;
+  width: 95% !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.full-height-row {
+  flex: 1;
+  height: 100%;
+}
+
+.full-height-col {
+  height: 100%;
+}
+
+/* Cards com estilo translúcido */
 .f1-card-profile {
   background: rgba(240, 240, 245, 0.5) !important;
   border: 1.5px solid rgba(225, 6, 0, 0.5) !important;
@@ -154,31 +202,23 @@ onMounted(() => {
   -webkit-backdrop-filter: blur(14px);
 }
 
-.info-grid {
-  display: grid;
-  grid-template-columns: 180px 1fr;
-  row-gap: 8px;
-  align-items: center;
+/* Ocupa exatamente 50% da altura útil da coluna direita menos o gap */
+.right-half-card {
+  flex: 1;
+  height: calc(50% - 8px);
 }
 
-.info-label {
-  font-weight: 900;
-  font-size: 0.9rem;
-  letter-spacing: 0.05em;
+.sem-foto-placeholder {
+  height: 240px;
+  width: 100%;
+  background-color: rgba(210, 210, 215, 0.6);
+  border: 1px dashed rgba(100, 100, 100, 0.5);
 }
 
-.info-value {
-  font-weight: 800;
-  font-size: 0.95rem;
-}
-
-.th-style {
-  color: #111111 !important;
-  font-size: 0.9rem;
-  font-weight: 900;
-}
-
-.lh-relaxed { line-height: 1.6; }
+.line-height-tight { line-height: 1.2; }
+.line-height-relaxed { line-height: 1.6; }
 .tracking-widest { letter-spacing: 0.15em !important; }
+.justify-between { justify-content: space-between; }
 .gap-4 { gap: 16px; }
+.h-100 { height: 100%; }
 </style>

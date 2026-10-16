@@ -1,4 +1,4 @@
-<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="PILOTOS" />
@@ -169,6 +169,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -191,6 +192,7 @@ const form = ref({
   fotoUrl: '',
   biografia: ''
 })
+
 
 const carregarEscuderias = async () => {
   try {
@@ -228,8 +230,10 @@ const salvarPiloto = async () => {
   try {
     if (isEdicao.value) {
       await api.put(`/pilotos/${pilotoId.value}`, form.value)
+      registrarAtividade('PILOTO', `Piloto atualizado: ${form.value.nome}`)
     } else {
       await api.post('/pilotos', form.value)
+      registrarAtividade('PILOTO', `Novo piloto registrado: ${form.value.nome}`)
     }
     router.push('/pilotos')
   } catch (err) {

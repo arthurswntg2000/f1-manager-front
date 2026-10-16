@@ -133,6 +133,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -193,7 +194,6 @@ const carregarDadosCarro = async () => {
 const salvarCarro = async () => {
   carregando.value = true
   try {
-    // Objeto formatado para envio no Spring Boot
     const payload = {
       modelo: form.value.modelo,
       motor: form.value.motor,
@@ -206,8 +206,10 @@ const salvarCarro = async () => {
 
     if (isEdicao.value) {
       await api.put(`/carros/${carroId.value}`, payload)
+      registrarAtividade('CARRO', `Carro atualizado: ${form.value.modelo}`)
     } else {
       await api.post('/carros', payload)
+      registrarAtividade('CARRO', `Carro cadastrado: ${form.value.modelo}`)
     }
 
     router.push('/carros')
