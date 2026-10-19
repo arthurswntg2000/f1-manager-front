@@ -77,7 +77,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
-import { buscarAtividades } from '@/services/activityLogger'
+import { formatarTempoRelativo } from '@/services/activityLogger'
 
 const totalPilotos = ref(0)
 const totalEscuderias = ref(0)
@@ -102,8 +102,18 @@ const carregarMetricas = async () => {
   }
 }
 
-const atualizarAtividades = () => {
-  atividades.value = buscarAtividades()
+const atualizarAtividades = async () => {
+  try {
+    const response = await api.get('/atividades')
+    if (response.data) {
+      atividades.value = response.data.map(atv => ({
+        ...atv,
+        tempoRelativo: formatarTempoRelativo(new Date(atv.timestamp).getTime())
+      }))
+    }
+  } catch (err) {
+    console.error('Erro ao buscar atividades recentes na API:', err)
+  }
 }
 
 onMounted(() => {
@@ -112,6 +122,7 @@ onMounted(() => {
 
   // Recalcula o tempo relativo em tempo real a cada 30 segundos
   timerAtualizacao = setInterval(() => {
+    carregarMetricas()
     atualizarAtividades()
   }, 30000)
 })

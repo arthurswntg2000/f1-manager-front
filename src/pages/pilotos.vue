@@ -1,4 +1,4 @@
-<!-- Criado (13/10/2026) / Atualizado (16/10/2026) -->
+<!-- Criado (13/10/2026) / Atualizações (16/10/2026); (19/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -158,6 +158,20 @@ const pilotosFiltrados = computed(() => {
     p.id?.toString().includes(termo)
   )
 })
+
+// Criado (19/10/2026)
+async function reativarPiloto(id) {
+  try {
+    const res = await api.put(`/pilotos/${id}/reativar`)
+    const piloto = res.data
+
+    registrarAtividade('PILOTO_REATIVADO', `Piloto reativado no sistema: ${piloto.nome}`)
+
+    await carregarPilotos()
+  } catch (err) {
+    console.error('Erro ao reativar piloto:', err)
+  }
+}
 
 const totalPaginas = computed(() => Math.ceil(pilotosFiltrados.value.length / itensPorPagina) || 1)
 

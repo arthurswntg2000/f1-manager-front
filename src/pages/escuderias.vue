@@ -1,4 +1,4 @@
-<!-- Criado (13/10/2026) / Atualizado (16/10/2026) -->
+<!-- Criado (13/10/2026) / Atualizações (16/10/2026); (19/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -159,6 +159,20 @@ const escuderiasFiltradas = computed(() => {
   )
 })
 
+// Criado (19/10/2026)
+async function reativarEscuderia(id) {
+  try {
+    const res = await api.put(`/escuderias/${id}/reativar`)
+    const escuderia = res.data
+
+    registrarAtividade('ESCUDERIA_REATIVADA', `Escuderia reativada no sistema: ${escuderia.nome}`)
+
+    await carregarEscuderias()
+  } catch (err) {
+    console.error('Erro ao reativar escuderia:', err)
+  }
+}
+
 const totalPaginas = computed(() => Math.ceil(escuderiasFiltradas.value.length / itensPorPagina) || 1)
 
 const escuderiasPaginadas = computed(() => {
@@ -178,6 +192,7 @@ const confirmarDeletar = (escuderia) => {
   escuderiaSelecionada.value = escuderia
   dialogDeletar.value = true
 }
+
 
 const executarExclusao = async () => {
   if (!escuderiaSelecionada.value?.id) return

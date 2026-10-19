@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) / Atualizado (16/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizações (16/10/2026); (19/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -159,6 +159,23 @@ const carrosFiltrados = computed(() => {
     c.id?.toString().includes(termo)
   )
 })
+
+// Criado (19/10/2026)
+// Função limpa de reativação para carros.vue
+async function reativarCarro(id) {
+  try {
+    const res = await api.put(`/carros/${id}/reativar`)
+    const carro = res.data // Retorna o CarroResponseDTO
+
+    // Registra no activityLogger para aparecer no Dashboard
+    registrarAtividade('CARRO_REATIVADO', `Carro reativado no sistema: ${carro.modelo}`)
+
+    // Recarrega a listagem de carros
+    await carregarCarros()
+  } catch (err) {
+    console.error('Erro ao reativar carro:', err)
+  }
+}
 
 const totalPaginas = computed(() => Math.ceil(carrosFiltrados.value.length / itensPorPagina) || 1)
 
