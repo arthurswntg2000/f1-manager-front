@@ -7,7 +7,7 @@
       <div class="f1-overlay"></div>
 
       <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           {{ isEdicao ? 'EDITAR CARRO' : 'CADASTRO' }}
         </div>
@@ -15,16 +15,16 @@
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
         <v-card class="f1-card-form pa-6" rounded="xl">
-          <v-form @submit.prevent="salvarCarro">
+          <v-form ref="formRef" @submit.prevent="salvarCarro">
             <!-- Modelo do Carro -->
             <div class="mb-4">
-              <label class="form-label">MODELO DO CARRO</label>
+              <label class="form-label">MODELO DO CARRO *</label>
               <v-text-field
                 v-model="form.modelo"
                 placeholder="EX: SF-23"
+                :rules="[v => !!v || 'O modelo do carro é obrigatório']"
                 variant="outlined"
                 density="compact"
-                hide-details
                 class="f1-input mt-1"
                 required
               ></v-text-field>
@@ -44,14 +44,14 @@
                 ></v-text-field>
               </v-col>
               <v-col cols="12" sm="4">
-                <label class="form-label">ANO DE FABRICAÇÃO</label>
+                <label class="form-label">ANO DE FABRICAÇÃO *</label>
                 <v-select
                   v-model="form.ano"
                   :items="anosDisponiveis"
                   placeholder="SELECIONE"
+                  :rules="[v => !!v || 'O ano é obrigatório']"
                   variant="outlined"
                   density="compact"
-                  hide-details
                   class="f1-input mt-1"
                 ></v-select>
               </v-col>
@@ -138,6 +138,7 @@ import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
+const formRef = ref(null)
 
 // Obtém o ID numérico limpo vindo da URL
 const carroId = computed(() => {
@@ -192,6 +193,9 @@ const carregarDadosCarro = async () => {
 }
 
 const salvarCarro = async () => {
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
+
   carregando.value = true
   try {
     const payload = {
@@ -281,6 +285,20 @@ onMounted(async () => {
   color: #777 !important;
   font-style: italic;
   font-weight: 600;
+}
+
+:deep(.v-messages__message) {
+  color: #ff0000 !important; 
+  font-weight: 900 !important; 
+  font-size: 0.78rem !important;
+  letter-spacing: 0.03em;
+  opacity: 1 !important;
+  margin-top: 3px !important;
+}
+
+:deep(.v-field--error) {
+  border: 2px solid #ff0000 !important;
+  background-color: rgba(255, 235, 235, 0.95) !important;
 }
 
 .btn-f1 {

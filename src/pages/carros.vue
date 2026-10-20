@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) / Atualizações (16/10/2026); (19/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizações (16/10/2026); (19/10/2026); (20/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -7,7 +7,7 @@
       <div class="f1-overlay"></div>
 
       <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           CARROS
         </div>
@@ -104,7 +104,7 @@
           <v-col cols="12" sm="10">
             <v-card class="f1-btn-card pa-3 text-center" rounded="xl">
               <span class="font-weight-black text-grey-darken-4 text-caption tracking-widest">
-                EXIBINDO {{ carrosPaginados.length }} DE {{ totalCarros }} CARROS
+                {{ textoExibicao }}
               </span>
             </v-card>
           </v-col>
@@ -148,6 +148,19 @@ const carregandoAcao = ref(false)
 
 const termoBusca = ref('')
 const carroSelecionado = ref(null)
+
+const totalCarrosExibicao = computed(() => carrosFiltrados.value.length)
+
+const textoExibicao = computed(() => {
+  if (totalCarrosExibicao.value === 0) {
+    return 'NENHUM CARRO ENCONTRADO'
+  }
+
+  const inicio = (paginaAtual.value - 1) * itensPorPagina + 1
+  const fim = Math.min(paginaAtual.value * itensPorPagina, totalCarrosExibicao.value)
+
+  return `EXIBINDO ${inicio}-${fim} DE ${totalCarrosExibicao.value} CARROS`
+})
 
 const carrosFiltrados = computed(() => {
   if (!termoBusca.value) return carros.value

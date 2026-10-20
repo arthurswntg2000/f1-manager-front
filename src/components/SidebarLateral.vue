@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) /Atualizado (15/10/2026) -->
+<!-- Criado (09/10/2026) /Atualizado (15/10/2026); (20/10/2026) -->
 <template>
   <v-navigation-drawer
     app
@@ -9,7 +9,10 @@
   >
     <div>
       <!-- Logo F1 Manager -->
-      <div class="pa-6 font-weight-black text-white text-h6 tracking-wider border-b border-grey-darken-3">
+      <div 
+        class="pa-6 font-weight-black text-white text-h6 tracking-wider border-b border-grey-darken-3 cursor-pointer"
+        @click="router.push('/dashboard')"
+      >
         F1 MANAGER
       </div>
 

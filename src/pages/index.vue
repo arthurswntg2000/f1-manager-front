@@ -1,103 +1,110 @@
-<!--Criado (08/10/2026); Atualizado (13/10/2026)--> 
+<!--Criado (08/10/2026); Atualizado (13/10/2026); (20/10/2026)--> 
 <template>
-  <!-- Barra superior fixa com o logo F1 MANAGER -->
-  <v-app-bar flat color="#15151e" height="48" class="border-b">
-    <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-      F1 MANAGER
-    </div>
-  </v-app-bar>
+  <v-app class="bg-black">
+    <!-- Barra superior fixa com o logo F1 MANAGER -->
+    <v-app-bar flat color="#15151e" height="72" class="border-b">
+      <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
+        F1 MANAGER
+      </div>
+    </v-app-bar>
 
-  <!-- Container Principal -->
-  <v-container fluid class="f1-bg pa-0 d-flex align-center justify-center" >
-    <!-- Camada de sobreposição escurecida para destacar o formulário de login -->
-    <div class="f1-overlay"></div>
+    <!-- Container Principal -->
+    <v-main class="f1-bg pa-0 d-flex align-center justify-center">
+      <!-- Camada de sobreposição escurecida -->
+      <div class="f1-overlay"></div>
     
 
-    <v-row align="center" justify="center" class="ma-0 w-100 z-index-content" >
-      <v-col cols="12" sm="8" md="5" lg="4">
+      <v-container fluid class="fill-height pa-0 d-flex align-center justify-center z-index-content">
+        <v-row align="center" justify="center" class="ma-0 w-100">
+          <v-col cols="12" sm="8" md="5" lg="4">
 
-        <!-- Card de Autenticação -->
-        <v-card 
-          class="f1-card pa-6 text-center"
-          variant="outlined"
-          rounded="xl"
-          elevation="24"
-        >
-          <!-- Título Interno -->
-          <h2 class="text-h5 font-weight-black text-red-accent-4 mb-6 tracking-wider">
-            LOGIN
-          </h2>
-
-          <v-form @submit.prevent="handleLogin">
-            <!-- Campo EMAIL/LOGIN-->
-            <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-              USUÁRIO
-            </div>
-            <v-text-field
-              v-model="login"
-              placeholder="DIGITE SEU E-MAIL/USUÁRIO"
-              variant="solo"
-              flat
-              density="comfortable"
-              class="f1-input mb-4"
-              bg-color="rgba(226, 232, 240, 0.85)"
-              rounded="lg"
-              hide-details="auto"
-              required
-            ></v-text-field>
-
-            <!-- Campo SENHA -->
-            <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-              SENHA
-            </div>
-            <v-text-field
-              v-model="password"
-              placeholder="..............."
-              type="password"
-              variant="solo"
-              flat
-              density="comfortable"
-              class="f1-input mb-6"
-              bg-color="rgba(226, 232, 240, 0.85)"
-              rounded="lg"
-              hide-details="auto"
-              required
-            ></v-text-field>
-
-            <!-- Alerta de Erro -->
-            <v-alert v-if="error" type="error" variant="flat" density="compact" class="mb-4 text-caption font-weight-bold text-white">
-              {{ error }}
-            </v-alert>
-
-            <!-- Botão ENTRAR -->
-            <v-btn
-              type="submit"
-              @click="handleLogin"
-              color="#e10600"
-              size="large"
-              rounded="pill"
-              class="px-8 font-weight-black text-white text-subtitle-1 mb-6 btn-f1"
-              elevation="2"
+            <!-- Card de Autenticação -->
+            <v-card 
+              class="f1-card pa-6 text-center"
+              variant="outlined"
+              rounded="xl"
+              elevation="24"
             >
-              ENTRAR
-            </v-btn>
-          </v-form>
+              <!-- Título Interno -->
+              <h2 class="text-h5 font-weight-black text-red-accent-4 mb-6 tracking-wider">
+                LOGIN
+              </h2>
 
-          <!-- Links do Rodapé -->
-          <div class="d-flex flex-column gap-2 text-center pt-2">
-            <a href="#" class="f1-link text-caption font-weight-bold text-grey-darken-3 text-decoration-none hover-red">
-              ESQUECEU A SENHA?
-            </a>
-            <router-link
-              to="/registrar"
-              class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1">
-              NOVO POR AQUI? CADASTRE-SE
-            </router-link>
-          </div>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+              <v-form @submit.prevent="handleLogin">
+                <!-- Campo EMAIL/LOGIN-->
+                <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
+                  USUÁRIO
+                </div>
+                <v-text-field
+                  v-model="login"
+                  placeholder="DIGITE SEU E-MAIL/USUÁRIO"
+                  variant="solo"
+                  flat
+                  density="comfortable"
+                  class="f1-input mb-4"
+                  bg-color="rgba(226, 232, 240, 0.85)"
+                  rounded="lg"
+                  hide-details="auto"
+                  required
+                ></v-text-field>
+
+                <!-- Campo SENHA -->
+                <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
+                  SENHA
+                </div>
+                <v-text-field
+                  v-model="password"
+                  placeholder="..............."
+                  type="password"
+                  variant="solo"
+                  flat
+                  density="comfortable"
+                  class="f1-input mb-6"
+                  bg-color="rgba(226, 232, 240, 0.85)"
+                  rounded="lg"
+                  hide-details="auto"
+                  required
+                ></v-text-field>
+
+                <!-- Alerta de Erro -->
+                <v-alert v-if="error" type="error" variant="flat" density="compact" class="mb-4 text-caption font-weight-bold text-white">
+                  {{ error }}
+                </v-alert>
+
+                <!-- Botão ENTRAR -->
+                <v-btn
+                  type="submit"
+                  @click="handleLogin"
+                  color="#e10600"
+                  size="large"
+                  rounded="pill"
+                  class="px-8 font-weight-black text-white text-subtitle-1 mb-6 btn-f1"
+                  elevation="2"
+                >
+                  ENTRAR
+                </v-btn>
+              </v-form>
+
+              <!-- Links do Rodapé -->
+              <div class="d-flex flex-column gap-2 text-center pt-2">
+                <span 
+                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1"
+                  @click="$router.push('/redefinir-senha')"
+                >
+                  ESQUECEU A SENHA?
+                </span>
+                <router-link
+                  to="/registrar"
+                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1">
+                  NOVO POR AQUI? CADASTRE-SE
+                </router-link>
+              </div>
+            </v-card>
+          </v-col>
+        </v-row>
+      </v-container>
+    </v-main>
+  </v-app>  
 </template>
 
 <script setup lang="ts">

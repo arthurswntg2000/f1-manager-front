@@ -60,6 +60,11 @@ const router = createRouter({
       path: '/PerfilCarro', 
       component: () => import('@/pages/PerfilCarro.vue') 
     },
+    {
+      path: '/redefinir-senha',
+      name: 'RedefinirSenha',
+      component: () => import('@/pages/RedefinirSenha.vue')
+    },
   ],
 })
 

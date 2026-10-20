@@ -7,7 +7,7 @@
       <div class="f1-overlay"></div>
 
       <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="65" class="border-b" app>
+      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
         <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
           {{ isEdicao ? 'EDITAR PILOTO' : 'CADASTRO' }}
         </div>
@@ -15,16 +15,16 @@
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
         <v-card class="f1-card-form pa-6" rounded="xl">
-          <v-form @submit.prevent="salvarPiloto">
+          <v-form ref="formRef" @submit.prevent="salvarPiloto">
             <!-- Nome do Piloto -->
             <div class="mb-3">
-              <label class="form-label">NOME DO PILOTO</label>
+              <label class="form-label">NOME DO PILOTO *</label>
               <v-text-field
                 v-model="form.nome"
                 placeholder="EX: AYRTON SENNA"
+                :rules="[v => !!v || 'O nome do piloto é obrigatório']"
                 variant="outlined"
                 density="compact"
-                hide-details
                 class="f1-input mt-1"
               ></v-text-field>
             </div>
@@ -32,13 +32,13 @@
             <!-- Nacionalidade e Número do Carro -->
             <v-row density="compact" class="mb-3">
               <v-col cols="12" sm="8">
-                <label class="form-label">NACIONALIDADE</label>
+                <label class="form-label">NACIONALIDADE *</label>
                 <v-text-field
                   v-model="form.nacionalidade"
                   placeholder="EX: BRASILEIRO"
+                  :rules="[v => !!v || 'A nacionalidade é obrigatória']"
                   variant="outlined"
                   density="compact"
-                  hide-details
                   class="f1-input mt-1"
                 ></v-text-field>
               </v-col>
@@ -174,6 +174,7 @@ import api from '@/services/api'
 
 const route = useRoute()
 const router = useRouter()
+const formRef = ref(null)
 
 const pilotoId = computed(() => route.query.id)
 const isEdicao = computed(() => !!pilotoId.value)
@@ -226,18 +227,35 @@ const carregarDadosPiloto = async () => {
 }
 
 const salvarPiloto = async () => {
+  if (formRef.value) {
+    const { valid } = await formRef.value.validate()
+    if (!valid) return
+  }
+
   salvando.value = true
   try {
+    const payload = {
+      nome: form.value.nome,
+      nacionalidade: form.value.nacionalidade,
+      numeroCarro: form.value.numeroCarro ? Number(form.value.numeroCarro) : null,
+      status: form.value.status || 'ATIVO',
+      dataNascimento: form.value.dataNascimento || null,
+      titulos: form.value.titulos ? Number(form.value.titulos) : 0,
+      escuderiasIds: form.value.escuderiasIds || [],
+      fotoUrl: form.value.fotoUrl || '',
+      biografia: form.value.biografia || ''
+    }
+
     if (isEdicao.value) {
-      await api.put(`/pilotos/${pilotoId.value}`, form.value)
+      await api.put(`/pilotos/${pilotoId.value}`, payload)
       registrarAtividade('PILOTO', `Piloto atualizado: ${form.value.nome}`)
     } else {
-      await api.post('/pilotos', form.value)
+      await api.post('/pilotos', payload)
       registrarAtividade('PILOTO', `Novo piloto registrado: ${form.value.nome}`)
     }
     router.push('/pilotos')
   } catch (err) {
-    console.error('Erro ao salvar piloto:', err)
+    console.error('Erro ao salvar piloto:', err.response?.data || err)
   } finally {
     salvando.value = false
   }
@@ -307,6 +325,20 @@ onMounted(async () => {
   color: #777 !important;
   font-style: italic;
   font-weight: 600;
+}
+
+:deep(.v-messages__message) {
+  color: #ff0000 !important; 
+  font-weight: 900 !important; 
+  font-size: 0.78rem !important;
+  letter-spacing: 0.03em;
+  opacity: 1 !important;
+  margin-top: 3px !important;
+}
+
+:deep(.v-field--error) {
+  border: 2px solid #ff0000 !important;
+  background-color: rgba(255, 235, 235, 0.95) !important;
 }
 
 .btn-f1 {

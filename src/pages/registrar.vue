@@ -1,8 +1,8 @@
-<!-- Criado (09/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizações (20/10/2026) -->
 <template>
-  <v-app>
+  <v-app class="bg-black">
     <!-- Barra superior fixa com o logo F1 MANAGER -->
-    <v-app-bar flat color="#15151e" height="65" class="border-b">
+    <v-app-bar flat color="#15151e" height="72" class="border-b">
       <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
         F1 MANAGER
       </div>
@@ -27,14 +27,15 @@
               CRIAR NOVA CONTA
             </h2>
 
-            <v-form @submit.prevent="handleRegister">
+            <v-form ref="formRef" @submit.prevent="handleRegister">
               <!-- Campo NOME COMPLETO -->
               <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-                NOME COMPLETO
+                NOME COMPLETO *
               </div>
               <v-text-field
                 v-model="nome"
                 placeholder="DIGITE SEU NOME"
+                :rules="[v => !!v || 'Nome completo é obrigatório']"
                 variant="solo"
                 flat
                 density="comfortable"
@@ -45,12 +46,13 @@
 
               <!-- Campo E-MAIL/LOGIN -->
               <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-                E-MAIL / LOGIN
+                E-MAIL / LOGIN *
               </div>
               <v-text-field
                 v-model="login"
                 placeholder="DIGITE SEU E-MAIL/USUÁRIO"
                 type="email"
+                :rules="regrasEmail"
                 variant="solo"
                 flat
                 density="comfortable"
@@ -61,12 +63,13 @@
 
               <!-- Campo SENHA -->
               <div class="text-left font-weight-bold text-caption text-grey-darken-3 mb-1">
-                SENHA
+                SENHA *
               </div>
               <v-text-field
                 v-model="password"
                 placeholder="••••••••••••"
                 type="password"
+                :rules="[v => !!v || 'Senha é obrigatória']"
                 variant="solo"
                 flat
                 density="comfortable"
@@ -83,6 +86,7 @@
                 v-model="confirmPassword"
                 placeholder="••••••••••••"
                 type="password"
+                :rules="regrasConfirmarSenha"
                 variant="solo"
                 flat
                 density="comfortable"
@@ -133,6 +137,7 @@ import { useRouter } from 'vue-router'
 import axios from 'axios'
 
 const router = useRouter()
+const formRef = ref(null)
 
 const nome = ref('')
 const login = ref('')
@@ -141,12 +146,24 @@ const confirmPassword = ref('')
 const loading = ref(false)
 const errorMessage = ref('')
 
+// Validações
+const regrasEmail = [
+  v => !!v || 'E-mail / Login é obrigatório',
+  v => /.+@.+\..+/.test(v) || 'Informe um e-mail válido'
+]
+
+const regrasConfirmarSenha = [
+  v => !!v || 'Confirmação de senha é obrigatória',
+  v => v === password.value || 'As senhas não coincidem'
+]
+
 const passwordsDoNotMatch = computed(() => {
   return confirmPassword.value.length > 0 && password.value !== confirmPassword.value
 })
 
 const handleRegister = async () => {
-  if (passwordsDoNotMatch.value) return
+  const { valid } = await formRef.value.validate()
+  if (!valid) return
 
   loading.value = true
   errorMessage.value = ''
@@ -200,7 +217,7 @@ const handleRegister = async () => {
 
 /* Card Translúcido em tom claro */
 .f1-card {
-  background: rgba(245, 245, 247, 0.3) !important;
+  background: rgba(245, 245, 247, 0.2) !important;
   backdrop-filter: blur(16px);
   border: 1px solid rgba(255, 255, 255, 0.6);
   color: #1a1a1a !important;
@@ -220,6 +237,22 @@ const handleRegister = async () => {
 :deep(.custom-input input::placeholder) {
   color: #6b7280 !important;
   opacity: 1 !important;
+}
+
+/* Força cor viva, fundo contrastante e negrito total nas mensagens de erro do Vuetify */
+:deep(.v-messages__message) {
+  color: #ff0000 !important; /* Vermelho vibrante de alto contraste */
+  font-weight: 900 !important; /* Texto em negrito pesado */
+  font-size: 0.78rem !important;
+  letter-spacing: 0.03em;
+  opacity: 1 !important;
+  margin-top: 3px !important;
+}
+
+/* Destaca o campo com contorno vermelho marcante */
+:deep(.v-field--error) {
+  border: 2px solid #ff0000 !important;
+  background-color: rgba(255, 235, 235, 0.95) !important;
 }
 
 /* Efeito Hover nos links */
