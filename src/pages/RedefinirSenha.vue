@@ -1,4 +1,4 @@
-<!-- Criado (20/10/2026) -->
+<!-- Criado (20/10/2026); Atualizações (21/10/2026) -->
 <template>
   <v-app>
     <v-main class="f1-bg">
@@ -18,14 +18,14 @@
             REDEFINIR SENHA
           </div>
 
-          <!-- Campo de E-mail -->
+          <!-- Campo: Usuário / E-mail -->
           <div class="text-left mb-4">
             <label class="text-caption font-weight-black text-grey-darken-4 tracking-widest d-block mb-1">
-              INFORME SEU E-MAIL
+              USUÁRIO OU E-MAIL *
             </label>
             <v-text-field
-              v-model="email"
-              placeholder="DIGITE SEU E-MAIL CADASTRADO"
+              v-model="login"
+              placeholder="DIGITE SEU USUÁRIO OU E-MAIL"
               variant="solo-filled"
               flat
               density="comfortable"
@@ -34,7 +34,45 @@
             ></v-text-field>
           </div>
 
-          <!-- Botão de Envio -->
+          <!-- Campo: Nova Senha -->
+          <div class="text-left mb-4">
+            <label class="text-caption font-weight-black text-grey-darken-4 tracking-widest d-block mb-1">
+              NOVA SENHA *
+            </label>
+            <v-text-field
+              v-model="senha"
+              :type="mostrarSenha ? 'text' : 'password'"
+              placeholder="DIGITE SUA NOVA SENHA"
+              variant="solo-filled"
+              flat
+              density="comfortable"
+              hide-details
+              class="f1-input-field"
+              :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="mostrarSenha = !mostrarSenha"
+            ></v-text-field>
+          </div>
+
+          <!-- Campo: Confirmar Nova Senha -->
+          <div class="text-left mb-4">
+            <label class="text-caption font-weight-black text-grey-darken-4 tracking-widest d-block mb-1">
+              REDEFINIR SENHA *
+            </label>
+            <v-text-field
+              v-model="confirmarSenha"
+              :type="mostrarConfirmarSenha ? 'text' : 'password'"
+              placeholder="CONFIRME SUA NOVA SENHA"
+              variant="solo-filled"
+              flat
+              density="comfortable"
+              hide-details
+              class="f1-input-field"
+              :append-inner-icon="mostrarConfirmarSenha ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="mostrarConfirmarSenha = !mostrarConfirmarSenha"
+            ></v-text-field>
+          </div>
+
+          <!-- Botão de Salvar -->
           <v-btn
             color="#e10600"
             variant="flat"
@@ -43,19 +81,19 @@
             block
             class="font-weight-black text-white btn-f1 mt-6 mb-4"
             :loading="carregando"
-            @click="enviarRecuperacao"
+            @click="redefinirSenha"
           >
-            ENVIAR INSTRUÇÕES
+            SALVAR SENHA
           </v-btn>
 
           <!-- Links Inferiores -->
           <div class="d-flex flex-column gap-2 mt-4">
-            <span 
-              class="font-weight-black text-caption text-grey-darken-4 cursor-pointer tracking-widest hover-red"
-              @click="$router.push('/')"
+            <router-link 
+              to="/"
+              class="font-weight-black text-caption text-grey-darken-4 cursor-pointer tracking-widest hover-red text-decoration-none"
             >
               VOLTAR PARA O LOGIN
-            </span>
+            </router-link>
           </div>
         </v-card>
       </v-container>
@@ -63,23 +101,46 @@
   </v-app>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
+import api from '../services/api'
 
 const router = useRouter()
-const email = ref('')
+const login = ref('')
+const senha = ref('')
+const confirmarSenha = ref('')
+const mostrarSenha = ref(false)
+const mostrarConfirmarSenha = ref(false)
 const carregando = ref(false)
 
-const enviarRecuperacao = () => {
-  if (!email.value) return
+const redefinirSenha = async () => {
+  if (!login.value || !senha.value || !confirmarSenha.value) {
+    alert('Preencha todos os campos!')
+    return
+  }
+
+  if (senha.value !== confirmarSenha.value) {
+    alert('As senhas não coincidem!')
+    return
+  }
+
   carregando.value = true
 
-  setTimeout(() => {
-    carregando.value = false
-    alert('Se o e-mail estiver cadastrado, você receberá o link para redefinição de senha.')
+  try {
+    await api.put('/auth/redefinir-senha', {
+      login: login.value,
+      novaSenha: senha.value
+    })
+
+    alert('Senha alterada com sucesso no servidor!')
     router.push('/')
-  }, 1000)
+  } catch (err: any) {
+    console.error('Erro ao redefinir senha:', err)
+    alert(err.response?.data?.mensagem || 'Erro ao comunicar com o servidor!')
+  } finally {
+    carregando.value = false
+  }
 }
 </script>
 
@@ -130,6 +191,18 @@ const enviarRecuperacao = () => {
 :deep(.f1-input-field input::placeholder) {
   color: #777 !important;
   font-style: italic;
+}
+
+/* Cor escura para os ícones de olho */
+:deep(.f1-input-field .v-icon) {
+  color: #1e293b !important;
+  opacity: 0.8;
+}
+
+/* Oculta o ícone de olho nativo dos navegadores*/
+:deep(input::-ms-reveal),
+:deep(input::-ms-clear) {
+  display: none !important;
 }
 
 .btn-f1 {

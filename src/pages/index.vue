@@ -54,8 +54,8 @@
                 </div>
                 <v-text-field
                   v-model="password"
+                  :type="mostrarSenha ? 'text' : 'password'"
                   placeholder="..............."
-                  type="password"
                   variant="solo"
                   flat
                   density="comfortable"
@@ -64,6 +64,8 @@
                   rounded="lg"
                   hide-details="auto"
                   required
+                  :append-inner-icon="mostrarSenha ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="mostrarSenha = !mostrarSenha"
                 ></v-text-field>
 
                 <!-- Alerta de Erro -->
@@ -74,7 +76,6 @@
                 <!-- Botão ENTRAR -->
                 <v-btn
                   type="submit"
-                  @click="handleLogin"
                   color="#e10600"
                   size="large"
                   rounded="pill"
@@ -85,17 +86,19 @@
                 </v-btn>
               </v-form>
 
-              <!-- Links do Rodapé -->
+              <!-- Links do Rodapé com router-link -->
               <div class="d-flex flex-column gap-2 text-center pt-2">
-                <span 
-                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1"
-                  @click="$router.push('/redefinir-senha')"
+                <router-link 
+                  to="/redefinir-senha"
+                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1 cursor-pointer"
                 >
                   ESQUECEU A SENHA?
-                </span>
+                </router-link>
+
                 <router-link
                   to="/registrar"
-                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1">
+                  class="text-caption font-weight-bold text-grey-darken-3 text-decoration-none d-block hover-red mt-1"
+                >
                   NOVO POR AQUI? CADASTRE-SE
                 </router-link>
               </div>
@@ -114,6 +117,7 @@ import api from '../services/api';
 
 const login = ref('');
 const password = ref('');
+const mostrarSenha = ref(false);
 const error = ref('');
 const router = useRouter();
 
@@ -132,13 +136,10 @@ const handleLogin = async () => {
     console.error('Erro na requisição:', err);
 
     if (!err.response) {
-      // Backend offline ou problema de CORS (Cross-Origin Resource Sharing)
       error.value = 'Servidor indisponível (CORS ou Spring Boot desligado)!';
     } else if (err.response.status === 403 || err.response.status === 401) {
-      // Login/Senha incorretos ou não autorizado pelo Spring Security
       error.value = 'Login ou senha inválidos!';
     } else {
-      // Outros erros vindos da API
       error.value = err.response.data?.mensagem || 'Erro ao realizar login!';
     }
   }
@@ -198,6 +199,17 @@ const handleLogin = async () => {
   font-size: 0.85rem;
 }
 
+:deep(.f1-input .v-icon) {
+  color: #1e293b !important;
+  opacity: 0.8;
+}
+
+/* Oculta o ícone de olho nativo dos navegadores*/
+:deep(input::-ms-reveal),
+:deep(input::-ms-clear) {
+  display: none !important;
+}
+
 /* Links sem sublinhado por padrão */
 .f1-link {
   text-decoration: none;
@@ -207,6 +219,10 @@ const handleLogin = async () => {
 .hover-red:hover {
   color: #d50000 !important;
   text-decoration: underline !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
 }
 
 .btn-f1 {
