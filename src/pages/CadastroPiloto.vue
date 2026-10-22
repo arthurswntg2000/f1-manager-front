@@ -1,17 +1,11 @@
-<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026); (22/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="PILOTOS" />
+    <AppHeader titulo="CADASTRO" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
-
-      <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
-        <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          {{ isEdicao ? 'EDITAR PILOTO' : 'CADASTRO' }}
-        </div>
-      </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
         <v-card class="f1-card-form pa-6" rounded="xl">
@@ -111,11 +105,11 @@
               ></v-select>
             </div>
 
-            <!-- Foto de Perfil -->
+            <!-- Foto de Perfil (Ligado corretamente a form.urlFoto) -->
             <div class="mb-3">
               <label class="form-label">FOTO DE PERFIL</label>
               <v-text-field
-                v-model="form.fotoUrl"
+                v-model="form.urlFoto"
                 placeholder="EX: HTTPS://..."
                 variant="outlined"
                 density="compact"
@@ -169,6 +163,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 
@@ -190,10 +185,9 @@ const form = ref({
   dataNascimento: '',
   titulos: 0,
   escuderiasIds: [],
-  fotoUrl: '',
+  urlFoto: '',
   biografia: ''
 })
-
 
 const carregarEscuderias = async () => {
   try {
@@ -218,7 +212,7 @@ const carregarDadosPiloto = async () => {
       dataNascimento: p.dataNascimento || '',
       titulos: p.titulos ?? 0,
       escuderiasIds: p.escuderias ? p.escuderias.map(e => e.id) : (p.escuderiasIds || []),
-      fotoUrl: p.fotoUrl || '',
+      urlFoto: p.urlFoto || p.fotoUrl || '',
       biografia: p.biografia || ''
     }
   } catch (err) {
@@ -242,7 +236,7 @@ const salvarPiloto = async () => {
       dataNascimento: form.value.dataNascimento || null,
       titulos: form.value.titulos ? Number(form.value.titulos) : 0,
       escuderiasIds: form.value.escuderiasIds || [],
-      fotoUrl: form.value.fotoUrl || '',
+      urlFoto: form.value.urlFoto || '',
       biografia: form.value.biografia || ''
     }
 

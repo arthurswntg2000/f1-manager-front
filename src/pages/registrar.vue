@@ -206,7 +206,7 @@ const handleRegister = async () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(15, 15, 20, 0.45);
+  background: rgba(15, 15, 20, 0.2);
   backdrop-filter: blur(4px);
 }
 
@@ -234,9 +234,13 @@ const handleRegister = async () => {
   color: #111827 !important;
 }
 
+:deep(.v-field input::placeholder),
+:deep(.f1-input input::placeholder),
 :deep(.custom-input input::placeholder) {
-  color: #6b7280 !important;
-  opacity: 1 !important;
+  color: #334155 !important; /* Mesma cor chumbo escura do login */
+  font-style: italic !important;
+  font-weight: 600 !important;
+  font-size: 0.85rem !important;
 }
 
 /* Força cor viva, fundo contrastante e negrito total nas mensagens de erro do Vuetify */
@@ -266,6 +270,6 @@ const handleRegister = async () => {
 }
 
 .tracking-wider {
-  letter-spacing: 0.08em !important;
+  letter-spacing: 0.03em !important;
 }
 </style>

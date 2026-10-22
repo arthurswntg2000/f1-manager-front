@@ -1,4 +1,4 @@
-<!-- Criado (09/10/2026) / Atualizado (15/10/2026) -->
+<!-- Criado (09/10/2026) / Atualizações (15/10/2026); (22/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral />
@@ -6,10 +6,34 @@
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
 
-      <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
-        <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
+      <!-- Barra Superior com Nome do Usuário e Cronômetro de Sessão -->
+      <v-app-bar flat color="#15151e" height="72" class="border-b px-6" app>
+        <v-spacer></v-spacer>
+
+        <!-- Título Centralizado -->
+        <div class="text-h6 font-weight-black text-red-accent-4 tracking-widest">
           DASHBOARD
+        </div>
+
+        <v-spacer></v-spacer>
+
+        <!-- Bloco Direito: Usuário Logado + Cronômetro de Sessão -->
+        <div class="d-flex align-center gap-3">
+          <!-- Nome do Usuário Logado -->
+          <div class="d-flex align-center bg-grey-darken-4 px-3 py-1 rounded-pill border-subtle">
+            <v-icon icon="mdi-account-circle" color="red-accent-4" class="mr-2" size="small"></v-icon>
+            <span class="text-caption font-weight-black text-grey-lighten-2 tracking-wide text-uppercase">
+              {{ nomeUsuario }}
+            </span>
+          </div>
+
+          <!-- Cronômetro da Sessão -->
+          <div class="d-flex align-center bg-grey-darken-4 px-3 py-1 rounded-pill border-subtle">
+            <v-icon icon="mdi-clock-outline" color="red-accent-4" class="mr-2" size="small"></v-icon>
+            <span class="text-caption font-weight-black text-grey-lighten-2 tracking-wide">
+              Sessão: {{ tempoSessaoFormatado }}
+            </span>
+          </div>
         </div>
       </v-app-bar>
 
@@ -74,7 +98,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import api from '@/services/api'
 import { formatarTempoRelativo } from '@/services/activityLogger'
@@ -84,7 +108,18 @@ const totalEscuderias = ref(0)
 const totalCarros = ref(0)
 const atividades = ref([])
 
+// Variáveis de Usuário e Cronômetro de Sessão
+const nomeUsuario = ref('USUÁRIO')
+const segundosSessao = ref(0)
+let timerSessao = null
 let timerAtualizacao = null
+
+// Converte os segundos em formato MM:SS
+const tempoSessaoFormatado = computed(() => {
+  const min = Math.floor(segundosSessao.value / 60).toString().padStart(2, '0')
+  const sec = (segundosSessao.value % 60).toString().padStart(2, '0')
+  return `${min}:${sec}`
+})
 
 const carregarMetricas = async () => {
   try {
@@ -117,6 +152,17 @@ const atualizarAtividades = async () => {
 }
 
 onMounted(() => {
+  // Resgata o usuário logado
+  const usuarioSalvo = localStorage.getItem('usuario')
+  if (usuarioSalvo) {
+    nomeUsuario.value = usuarioSalvo
+  }
+
+  // Cronômetro da Sessão (incrementa a cada 1 segundo)
+  timerSessao = setInterval(() => {
+    segundosSessao.value++
+  }, 1000)
+
   carregarMetricas()
   atualizarAtividades()
 
@@ -128,6 +174,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
+  if (timerSessao) clearInterval(timerSessao)
   if (timerAtualizacao) clearInterval(timerAtualizacao)
 })
 </script>
@@ -171,4 +218,8 @@ onUnmounted(() => {
 
 .tracking-widest { letter-spacing: 0.15em !important; }
 .text-no-wrap { white-space: nowrap; }
+
+.gap-3 { gap: 12px; }
+.border-subtle { border: 1px solid rgba(255, 255, 255, 0.15); }
+.text-uppercase { text-transform: uppercase; }
 </style>

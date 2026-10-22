@@ -2,16 +2,10 @@
 <template>
   <v-app>
     <SidebarLateral />
+    <AppHeader titulo="CARROS" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
-
-      <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
-        <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          CARROS
-        </div>
-      </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content max-width-container">
         <!-- Linha Superior: Barra Unificada de Busca e Novo Carro -->
@@ -133,6 +127,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import { registrarAtividade } from '@/services/activityLogger'
 import api from '@/services/api'
 

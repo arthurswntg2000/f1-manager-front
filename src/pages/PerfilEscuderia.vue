@@ -2,16 +2,10 @@
 <template>
   <v-app>
     <SidebarLateral modo="perfil" modulo="ESCUDERIAS" />
+    <AppHeader titulo="PERFIL" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
-
-      <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
-        <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          PERFIL
-        </div>
-      </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content full-page-container">
         <!-- Indicador de Carregamento -->
@@ -147,6 +141,7 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import api from '@/services/api'
 
 const route = useRoute()

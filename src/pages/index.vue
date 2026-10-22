@@ -129,8 +129,13 @@ const handleLogin = async () => {
       password: password.value
     });
 
-    // Sucesso: guarda o token JWT e redireciona
+    // Guarda o token JWT e o nome do usuário no localStorage
     localStorage.setItem('token', response.data.token);
+
+    // Se a resposta retornar o objeto usuario com nome, guarda o nome; senão guarda a credencial de login
+    const nome = response.data.usuario?.nome || response.data.usuario?.login || login.value;
+    localStorage.setItem('usuario', nome);
+
     router.push('/dashboard');
   } catch (err: any) {
     console.error('Erro na requisição:', err);
@@ -195,6 +200,8 @@ const handleLogin = async () => {
 
 :deep(.f1-input input::placeholder) {
   color: #64748b !important;
+  opacity: 1 !important;
+  font-weight: 600;
   font-style: italic;
   font-size: 0.85rem;
 }

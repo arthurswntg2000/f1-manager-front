@@ -2,16 +2,10 @@
 <template>
   <v-app>
     <SidebarLateral modo="perfil" modulo="PILOTOS" />
+    <AppHeader titulo="PERFIL" />
 
     <v-main class="f1-bg">
       <div class="f1-overlay"></div>
-
-      <!-- Barra Superior -->
-      <v-app-bar flat color="#15151e" height="72" class="border-b" app>
-        <div class="w-100 text-center font-weight-black text-red-accent-4 text-h6 tracking-widest">
-          PERFIL
-        </div>
-      </v-app-bar>
 
       <v-container fluid class="pa-6 z-index-content full-page-container">
         <!-- Linha Principal ocupando 100% da altura restante -->
@@ -24,12 +18,18 @@
                 <!-- Foto / Imagem do Piloto -->
                 <div class="text-center mb-4">
                   <v-img
-                    v-if="piloto.fotoUrl"
-                    :src="piloto.fotoUrl"
+                    v-if="imagemExibicao"
+                    :src="imagemExibicao"
                     height="240"
-                    cover
-                    class="rounded-lg border mx-auto"
-                  ></v-img>
+                    contain
+                    class="rounded-lg border mx-auto bg-grey-lighten-3"
+                  >
+                    <template #placeholder>
+                      <div class="d-flex align-center justify-center fill-height bg-grey-lighten-2">
+                        <v-progress-circular indeterminate color="red-accent-4"></v-progress-circular>
+                      </div>
+                    </template>
+                  </v-img>
                   <div v-else class="sem-foto-placeholder d-flex align-center justify-center rounded-lg mx-auto">
                     <span class="text-grey-darken-1 font-weight-bold text-h6">Sem Foto</span>
                   </div>
@@ -101,7 +101,13 @@
                 <tbody>
                   <tr v-for="escuderia in piloto.escuderias" :key="escuderia.id">
                     <td class="py-2">
-                      <v-img :src="escuderia.urlLogo" max-width="40" class="mx-auto" contain></v-img>
+                      <v-img 
+                        :src="escuderia.urlLogo" 
+                        max-width="80" 
+                        height="45" 
+                        class="mx-auto" 
+                        contain
+                      ></v-img>
                     </td>
                     <td class="font-weight-black text-uppercase">{{ escuderia.nome }}</td>
                     <td class="font-weight-bold text-uppercase">{{ escuderia.paisOrigem }}</td>
@@ -125,6 +131,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
+import AppHeader from '@/components/AppHeader.vue'
 import api from '@/services/api'
 
 const route = useRoute()
@@ -142,11 +149,19 @@ const piloto = ref({
   escuderias: []
 })
 
+// Computed para garantir a leitura da foto de perfil 
+const imagemExibicao = computed(() => {
+  const url = piloto.value.urlFoto || piloto.value.fotoUrl
+  return url && url.trim().length > 0 ? url : null
+})
+
 const carregarPiloto = async () => {
   if (!pilotoId.value) return
   try {
     const res = await api.get(`/pilotos/${pilotoId.value}`)
-    if (res.data) piloto.value = res.data
+    if (res.data) {
+      piloto.value = res.data
+    }
   } catch (err) {
     console.error('Erro ao buscar dados do piloto:', err)
   }
@@ -183,6 +198,33 @@ onMounted(() => {
   width: 95% !important;
   display: flex;
   flex-direction: column;
+}
+
+/* Ajusta o tamanho da imagem da escuderia e o espaçamento vertical das linhas da tabela */
+:deep(.v-table td) {
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+.escuderia-logo-img {
+  max-width: 80px !important;
+  height: 45px !important;
+}
+
+:deep(.v-table) {
+  background-color: transparent !important;
+  color: #000000 !important;
+}
+
+:deep(.v-table th) {
+  color: #000000 !important;
+  font-weight: 900 !important;
+  font-size: 0.85rem !important;
+}
+
+:deep(.v-table td) {
+  color: #000000 !important;
+  font-weight: 800 !important;
 }
 
 .full-height-row {
