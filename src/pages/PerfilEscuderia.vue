@@ -30,7 +30,13 @@
                   max-width="220"
                   contain
                   class="rounded-lg mx-auto"
-                ></v-img>
+                >
+                  <template #placeholder>
+                    <div class="d-flex align-center justify-center fill-height bg-grey-lighten-2">
+                      <v-progress-circular indeterminate color="red-accent-4"></v-progress-circular>
+                    </div>
+                  </template>
+                </v-img>
                 <div v-else class="sem-foto-placeholder d-flex align-center justify-center rounded-lg mx-auto">
                   <span class="text-grey-darken-1 font-weight-bold">Sem Foto</span>
                 </div>
@@ -106,7 +112,7 @@
 
             <!-- Card 4: Pilotos da Escuderia -->
             <v-card class="f1-card-profile pa-6 card-bottom-height overflow-y-auto" rounded="xl">
-              <h2 class="text-h6 font-weight-black text-red-accent-4 text-center mb-3">PILOTOS (TEMPORADA ATUAL)</h2>
+              <h2 class="text-h6 font-weight-black text-red-accent-4 text-center mb-3">PILOTOS</h2>
               <v-table class="bg-transparent text-black text-center" density="compact">
                 <thead>
                   <tr>
@@ -138,7 +144,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import SidebarLateral from '@/components/SidebarLateral.vue'
 import AppHeader from '@/components/AppHeader.vue'
@@ -147,6 +153,18 @@ import api from '@/services/api'
 const route = useRoute()
 const escuderia = ref(null)
 const carregando = ref(true)
+
+// Computada que extrai o link da foto e aceita tanto urlLogo quanto logoUrl
+const fotoValida = computed(() => {
+  if (!escuderia.value) return null
+  const url = escuderia.value.urlLogo || escuderia.value.logoUrl
+  return url && url.trim().length > 0 ? url : null
+})
+
+// Computada que valida se existe foto disponível
+const hasFoto = computed(() => {
+  return !!fotoValida.value
+})
 
 const carregarEscuderia = async () => {
   const id = route.params.id || route.query.id
