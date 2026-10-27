@@ -1,4 +1,4 @@
-<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (16/10/2026); (27/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="ESCUDERIAS" />
@@ -78,7 +78,7 @@
             <div class="mb-4">
               <label class="form-label">PILOTOS VINCULADOS (SELECIONE UM OU MAIS)</label>
               <v-select
-                v-model="form.pilotosIds"
+                v-model="form.pilotoIds"
                 :items="pilotosOpcoes"
                 item-title="nome"
                 item-value="id"
@@ -96,7 +96,7 @@
             <div class="mb-4">
               <label class="form-label">CARROS VINCULADOS (SELECIONE UM OU MAIS)</label>
               <v-select
-                v-model="form.carrosIds"
+                v-model="form.carroIds"
                 :items="carrosOpcoes"
                 item-title="modelo"
                 item-value="id"
@@ -177,7 +177,7 @@ const route = useRoute()
 const router = useRouter()
 const formRef = ref(null)
 
-const escuderiaId = computed(() => route.query.id)
+const escuderiaId = computed(() => route.query.id || route.params.id)
 const isEdicao = computed(() => !!escuderiaId.value)
 
 const carregando = ref(false)
@@ -192,8 +192,8 @@ const form = ref({
   dataFundacao: '',
   titulos: 0,
   fundador: '',
-  pilotosIds: [],
-  carrosIds: [],
+  pilotoIds: [],
+  carroIds: [],
   urlLogo: '',
   biografia: ''
 })
@@ -223,9 +223,9 @@ const carregarDadosEscuderia = async () => {
       dataFundacao: e.dataFundacao || '',
       titulos: e.titulos ?? 0,
       fundador: e.fundador || '',
-      pilotosIds: e.pilotos ? e.pilotos.map(p => p.id) : (e.pilotosIds || []),
-      carrosIds: e.carros ? e.carros.map(c => c.id) : (e.carrosIds || []),
-      urlLogo: e.urlLogo || '',
+      pilotoIds: e.pilotos ? e.pilotos.map(p => p.id) : (e.pilotoIds || []),
+      carroIds: e.carros ? e.carros.map(c => c.id) : (e.carroIds || []),
+      urlLogo: e.urlLogo || e.logoUrl || '',
       biografia: e.biografia || ''
     }
   } catch (err) {
@@ -238,12 +238,26 @@ const salvarEscuderia = async () => {
   if (!valid) return
 
   carregando.value = true
+  
+  // Mapeamento correto para DTO backend (pilotoIds e carroIds)
+  const payload = {
+    nome: form.value.nome,
+    paisOrigem: form.value.paisOrigem,
+    dataFundacao: form.value.dataFundacao,
+    titulos: Number(form.value.titulos) || 0,
+    fundador: form.value.fundador,
+    urlLogo: form.value.urlLogo,
+    biografia: form.value.biografia,
+    pilotoIds: form.value.pilotoIds || [],
+    carroIds: form.value.carroIds || []
+  }
+
   try {
     if (isEdicao.value) {
-      await api.put(`/escuderias/${escuderiaId.value}`, form.value)
+      await api.put(`/escuderias/${escuderiaId.value}`, payload)
       registrarAtividade('ESCUDERIA', `Escuderia atualizada: ${form.value.nome}`)
     } else {
-      await api.post('/escuderias', form.value)
+      await api.post('/escuderias', payload)
       registrarAtividade('ESCUDERIA', `Nova escuderia registrada: ${form.value.nome}`)
     }
     router.push('/escuderias')
@@ -336,6 +350,5 @@ onMounted(async () => {
   font-size: 0.95rem;
 }
 
-.tracking-widest { letter-spacing: 0.15em !important; }
 .gap-3 { gap: 12px; }
 </style>

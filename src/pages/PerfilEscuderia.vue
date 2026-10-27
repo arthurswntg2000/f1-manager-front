@@ -1,4 +1,5 @@
 <!-- Criado (15/10/2026) / Atualização (16/10/2026) -->
+<!-- Criado (15/10/2026) / Atualização (16/10/2026) / (27/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="perfil" modulo="ESCUDERIAS" />
@@ -21,22 +22,14 @@
             
             <!-- Card 1: Logo Centralizada & Informações Empilhadas -->
             <v-card class="f1-card-profile pa-6 card-top-height overflow-y-auto d-flex flex-column justify-center align-center" rounded="xl">
-              <!-- Escudo/Logo Centralizado ou Placeholder "Sem Foto" -->
-              <div class="text-center mb-3 w-100">
-                <v-img
-                  v-if="hasFoto"
+              <!-- Escudo/Logo Centralizado -->
+              <div class="text-center mb-2 w-100 logo-container d-flex align-center justify-center">
+                <img
+                  v-if="fotoValida"
                   :src="fotoValida"
-                  height="180"
-                  max-width="220"
-                  contain
-                  class="rounded-lg mx-auto"
-                >
-                  <template #placeholder>
-                    <div class="d-flex align-center justify-center fill-height bg-grey-lighten-2">
-                      <v-progress-circular indeterminate color="red-accent-4"></v-progress-circular>
-                    </div>
-                  </template>
-                </v-img>
+                  alt="Logo da Escuderia"
+                  class="img-logo-fit"
+                />
                 <div v-else class="sem-foto-placeholder d-flex align-center justify-center rounded-lg mx-auto">
                   <span class="text-grey-darken-1 font-weight-bold">Sem Foto</span>
                 </div>
@@ -48,7 +41,7 @@
               </h1>
 
               <!-- Informações do Perfil Abaixo da Foto -->
-              <div class="w-100 border-t border-grey-lighten-2 pt-3 mt-auto">
+              <div class="w-100 border-t border-grey-lighten-2 pt-2 mt-auto">
                 <div class="d-flex justify-between py-1 border-b border-grey-lighten-2">
                   <span class="font-weight-black text-grey-darken-4 text-caption">PAÍS DE ORIGEM:</span>
                   <span class="font-weight-black text-black text-caption text-uppercase text-right">{{ escuderia.paisOrigem || '-' }}</span>
@@ -65,29 +58,29 @@
                 </div>
 
                 <div class="d-flex justify-between py-1">
-                  <span class="font-weight-black text-grey-darken-4">TÍTULOS:</span>
+                  <span class="font-weight-black text-grey-darken-4 text-caption">TÍTULOS:</span>
                   <span class="font-weight-black text-black text-caption text-right">{{ escuderia.titulos ?? 0 }}</span>
                 </div>
               </div>
             </v-card>
 
-            <!-- Card 2: Biografia (40% de Altura) -->
+            <!-- Card 2: Biografia -->
             <v-card class="f1-card-profile pa-6 card-bottom-height overflow-y-auto" rounded="xl">
               <h2 class="text-h6 font-weight-black text-red-accent-4 text-center mb-2">BIOGRAFIA</h2>
-              <p class="text-body-2 text-black font-weight-medium lh-relaxed text-justify">
+              <p class="text-body-2 text-black font-weight-medium lh-relaxed text-justify ma-0">
                 {{ escuderia.biografia || 'Sem biografia cadastrada para esta escuderia.' }}
               </p>
             </v-card>
 
           </v-col>
 
-          <!-- COLUNA DA DIREITA: Carros Vinculados (60%) + Pilotos (40%) -->
+          <!-- COLUNA DA DIREITA: Carros Vinculados + Pilotos -->
           <v-col cols="12" md="7" lg="8" class="full-height-col d-flex flex-column gap-4">
             
             <!-- Card 3: Carros Vinculados -->
             <v-card class="f1-card-profile pa-6 card-top-height overflow-y-auto" rounded="xl">
               <h2 class="text-h5 font-weight-black text-red-accent-4 text-center mb-4">CARROS VINCULADOS</h2>
-              <v-table class="bg-transparent text-black text-center">
+              <v-table class="bg-transparent text-black text-center" density="comfortable">
                 <thead>
                   <tr>
                     <th class="text-center font-weight-black th-style">MODELO</th>
@@ -96,12 +89,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="carro in escuderia.carros || []" :key="carro.id">
+                  <tr v-for="carro in carrosExibicao" :key="carro.id">
                     <td class="font-weight-black text-uppercase">{{ carro.modelo }}</td>
-                    <td class="font-weight-bold text-uppercase">{{ carro.motor }}</td>
+                    <td class="font-weight-bold text-uppercase">{{ carro.motor || '-' }}</td>
                     <td class="font-weight-bold">{{ carro.ano || 'N/A' }}</td>
                   </tr>
-                  <tr v-if="!escuderia.carros || escuderia.carros.length === 0">
+                  <tr v-if="carrosExibicao.length === 0">
                     <td colspan="3" class="text-center py-6 font-weight-bold text-grey-darken-1">
                       Nenhum carro vinculado a esta escuderia.
                     </td>
@@ -122,12 +115,12 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <tr v-for="piloto in escuderia.pilotos || []" :key="piloto.id">
-                    <td class="font-weight-black">{{ piloto.numeroCarro ?? 'S/N' }}</td>
+                  <tr v-for="piloto in pilotosExibicao" :key="piloto.id">
+                    <td class="font-weight-black">{{ piloto.numeroCarro ?? piloto.numero ?? 'S/N' }}</td>
                     <td class="font-weight-black text-uppercase">{{ piloto.nome }}</td>
-                    <td class="font-weight-bold text-uppercase">{{ piloto.nacionalidade }}</td>
+                    <td class="font-weight-bold text-uppercase">{{ piloto.nacionalidade || '-' }}</td>
                   </tr>
-                  <tr v-if="!escuderia.pilotos || escuderia.pilotos.length === 0">
+                  <tr v-if="pilotosExibicao.length === 0">
                     <td colspan="3" class="text-center py-4 font-weight-bold text-grey-darken-1">
                       Nenhum piloto vinculado a esta escuderia.
                     </td>
@@ -157,13 +150,20 @@ const carregando = ref(true)
 // Computada que extrai o link da foto e aceita tanto urlLogo quanto logoUrl
 const fotoValida = computed(() => {
   if (!escuderia.value) return null
-  const url = escuderia.value.urlLogo || escuderia.value.logoUrl
+  const url = escuderia.value.urlLogo || escuderia.value.logoUrl || escuderia.value.url
   return url && url.trim().length > 0 ? url : null
 })
 
-// Computada que valida se existe foto disponível
-const hasFoto = computed(() => {
-  return !!fotoValida.value
+// Computada para lista de carros resiliente
+const carrosExibicao = computed(() => {
+  if (!escuderia.value) return []
+  return escuderia.value.carros || escuderia.value.carrosList || []
+})
+
+// Computada para lista de pilotos resiliente
+const pilotosExibicao = computed(() => {
+  if (!escuderia.value) return []
+  return escuderia.value.pilotos || escuderia.value.pilotosList || []
 })
 
 const carregarEscuderia = async () => {
@@ -232,10 +232,21 @@ onMounted(() => {
   height: calc(40% - 8px);
 }
 
-.sem-foto-placeholder {
-  height: 180px;
-  width: 280px;
+.logo-container {
+  height: 150px;
+  max-width: 220px;
+}
+
+.img-logo-fit {
+  max-height: 100%;
   max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0px 4px 8px rgba(0, 0, 0, 0.2));
+}
+
+.sem-foto-placeholder {
+  height: 140px;
+  width: 200px;
   background-color: rgba(210, 210, 215, 0.6);
   border: 1px dashed rgba(100, 100, 100, 0.5);
 }
@@ -243,7 +254,6 @@ onMounted(() => {
 .th-style { color: #111111 !important; font-size: 0.85rem; font-weight: 900; }
 .lh-relaxed { line-height: 1.5; }
 .line-height-tight { line-height: 1.2; }
-.tracking-widest { letter-spacing: 0.15em !important; }
 .justify-between { justify-content: space-between; }
 .gap-4 { gap: 16px; }
 .fill-height { height: 100%; }

@@ -1,4 +1,4 @@
-<!-- Criado (14/10/2026) / Atualizado (15/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (27/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="CARROS" />
@@ -59,7 +59,27 @@
                 :items="escuderiasOpcoes"
                 item-title="nome"
                 item-value="id"
-                placeholder="SELECIONE"
+                placeholder="SELECIONE A ESCUDERIA"
+                variant="outlined"
+                density="compact"
+                hide-details
+                clearable
+                class="f1-input mt-1"
+              ></v-select>
+            </div>
+
+            <!-- PILOTOS VINCULADOS (SELEÇÃO MÚLTIPLA) -->
+            <div class="mb-4">
+              <label class="form-label">PILOTOS VINCULADOS (SELECIONE UM OU MAIS)</label>
+              <v-select
+                v-model="form.pilotoIds"
+                :items="pilotosOpcoes"
+                item-title="nome"
+                item-value="id"
+                placeholder="SELECIONE OS PILOTOS"
+                multiple
+                chips
+                closable-chips
                 variant="outlined"
                 density="compact"
                 hide-details
@@ -70,7 +90,7 @@
 
             <!-- Foto do Carro -->
             <div class="mb-4">
-              <label class="form-label">FOTO DO CARRO</label>
+              <label class="form-label">FOTO DO CARRO (URL)</label>
               <v-text-field
                 v-model="form.fotoUrl"
                 placeholder="EX: HTTPS://..."
@@ -135,7 +155,6 @@ const route = useRoute()
 const router = useRouter()
 const formRef = ref(null)
 
-// Obtém o ID numérico limpo vindo da URL
 const carroId = computed(() => {
   const id = route.query.id
   if (!id || id === '[object Object]') return null
@@ -149,22 +168,33 @@ const anoAtual = new Date().getFullYear()
 const anosDisponiveis = Array.from({ length: anoAtual - 1949 }, (_, i) => anoAtual - i)
 
 const escuderiasOpcoes = ref([])
+const pilotosOpcoes = ref([])
 
 const form = ref({
   modelo: '',
   motor: '',
   ano: null,
   escuderiaId: null,
+  pilotoIds: [],
   fotoUrl: '',
   fichaTecnica: ''
 })
 
-const carregarEscuderias = async () => {
+const carregarListas = async () => {
   try {
-    const res = await api.get('/escuderias')
-    if (res.data) escuderiasOpcoes.value = res.data
+    const [resEsc, resPil] = await Promise.all([
+      api.get('/escuderias'),
+      api.get('/pilotos')
+    ])
+    
+    if (resEsc.data) {
+      escuderiasOpcoes.value = resEsc.data.content || resEsc.data
+    }
+    if (resPil.data) {
+      pilotosOpcoes.value = resPil.data.content || resPil.data
+    }
   } catch (err) {
-    console.error('Erro ao carregar escuderias:', err)
+    console.error('Erro ao carregar listas de escuderias e pilotos:', err)
   }
 }
 
@@ -179,7 +209,8 @@ const carregarDadosCarro = async () => {
       motor: c.motor || '',
       ano: c.ano ? Number(c.ano) : null,
       escuderiaId: c.escuderia?.id || c.escuderiaId || null,
-      fotoUrl: c.fotoUrl || '',
+      pilotoIds: c.pilotos ? c.pilotos.map(p => p.id) : [],
+      fotoUrl: c.fotoUrl || c.urlFoto || '',
       fichaTecnica: c.fichaTecnica || ''
     }
   } catch (err) {
@@ -197,10 +228,11 @@ const salvarCarro = async () => {
       modelo: form.value.modelo,
       motor: form.value.motor,
       ano: form.value.ano ? Number(form.value.ano) : null,
+      urlFoto: form.value.fotoUrl,
       fotoUrl: form.value.fotoUrl,
       fichaTecnica: form.value.fichaTecnica,
-      escuderia: form.value.escuderiaId ? { id: form.value.escuderiaId } : null,
-      escuderiaId: form.value.escuderiaId || null
+      escuderiaId: form.value.escuderiaId || null,
+      pilotoIds: form.value.pilotoIds || []
     }
 
     if (isEdicao.value) {
@@ -224,7 +256,7 @@ const cancelar = () => {
 }
 
 onMounted(async () => {
-  await carregarEscuderias()
+  await carregarListas()
   await carregarDadosCarro()
 })
 </script>
