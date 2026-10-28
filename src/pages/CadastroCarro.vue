@@ -1,4 +1,4 @@
-<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (27/10/2026) -->
+<!-- Criado (14/10/2026) / Atualizações (15/10/2026); (27/10/2026); (28/10/2026) -->
 <template>
   <v-app>
     <SidebarLateral modo="cadastro" modulo="CARROS" />
